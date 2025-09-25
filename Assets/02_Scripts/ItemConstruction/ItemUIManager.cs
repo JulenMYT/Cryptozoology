@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ItemUIManager : MonoBehaviour
 {
@@ -8,8 +10,11 @@ public class ItemUIManager : MonoBehaviour
     [SerializeField] private ItemSlotButton itemSlotPrefab;
     [SerializeField] private Transform itemListContainer;
     [SerializeField] private CategoryData[] categories;
+    [SerializeField] private Button removeModeButton;
 
     private Dictionary<ItemCategory, Sprite> categoryIcons;
+    public event Action<ItemData> OnItemSelected;
+    public event Action OnRemoveModeSelected;
 
     private void Awake()
     {
@@ -18,6 +23,8 @@ public class ItemUIManager : MonoBehaviour
             categoryIcons[cat.category] = cat.icon;
 
         SetupCategoryButtons();
+        if (removeModeButton != null)
+            removeModeButton.onClick.AddListener(() => OnRemoveModeSelected?.Invoke());
     }
 
     private void SetupCategoryButtons()
@@ -42,12 +49,24 @@ public class ItemUIManager : MonoBehaviour
         {
             var slot = Instantiate(itemSlotPrefab, itemListContainer);
             slot.Initialize(item);
+            slot.OnItemClicked += HandleItemSelected;
         }
     }
 
     private void ClearItems()
     {
         foreach (Transform child in itemListContainer)
+        {
+            if (child.TryGetComponent<ItemSlotButton>(out var slot))
+            {
+                slot.OnItemClicked -= HandleItemSelected;
+            }
             Destroy(child.gameObject);
+        }
+    }
+
+    private void HandleItemSelected(ItemData item)
+    {
+        OnItemSelected?.Invoke(item);
     }
 }

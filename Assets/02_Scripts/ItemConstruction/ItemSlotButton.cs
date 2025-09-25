@@ -9,6 +9,7 @@ public class ItemSlotButton : MonoBehaviour
 
     private ItemData itemData;
 
+    public event Action<ItemData> OnItemClicked;
     public void Initialize(ItemData item)
     {
         itemData = item;
@@ -24,7 +25,7 @@ public class ItemSlotButton : MonoBehaviour
 
     private void OnButtonClicked()
     {
-        ItemEvents.OnItemSelected?.Invoke(itemData);
+        OnItemClicked?.Invoke(itemData);
     }
 
     private void OnDestroy()

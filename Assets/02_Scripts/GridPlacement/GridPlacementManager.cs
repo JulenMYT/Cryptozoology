@@ -9,25 +9,33 @@ public class GridPlacementManager : MonoBehaviour
     [SerializeField] private PlacementCursor cursor;
     [SerializeField] private int gridWidth = 10;
     [SerializeField] private int gridHeight = 10;
+    [SerializeField] private ItemUIManager itemUIManager;
 
     private ItemData selectedItem;
     private GameObject previewObject;
     private Vector3Int previousCell;
     private Dictionary<Vector3Int, GameObject> placedObjects = new();
+    private bool removeMode = false;
+    private bool isSubscribedToClick = false;
 
-    private void OnEnable()
+    private void Start()
     {
-        ItemEvents.OnItemSelected += SelectItem;
+        itemUIManager.OnItemSelected += SelectItem;
+        itemUIManager.OnRemoveModeSelected += SetRemoveMode;
     }
 
     private void OnDisable()
     {
-        ItemEvents.OnItemSelected -= SelectItem;
+        itemUIManager.OnItemSelected -= SelectItem;
+        itemUIManager.OnRemoveModeSelected -= SetRemoveMode;
+        UnsubscribeClicks();
     }
 
     public void SelectItem(ItemData item)
     {
         selectedItem = item;
+        removeMode = false;
+
         DestroyPreview();
 
         if (item.prefab != null)
@@ -42,39 +50,106 @@ public class GridPlacementManager : MonoBehaviour
             cursor.SetActive(true);
             cursor.SetSize(item.gridSize);
         }
+
+        SubscribeClicks();
+    }
+
+    public void SetRemoveMode()
+    {
+        removeMode = true;
+
+        DestroyPreview();
+        SubscribeClicks();
+        if (cursor != null)
+        {
+            cursor.SetActive(true);
+            cursor.SetSize(Vector2Int.one);
+            cursor.UpdateColor(false);
+        }
     }
 
     private void Update()
     {
-        if (selectedItem == null)
-        {
-            if (cursor != null && cursor.IsActive())
-                cursor.SetActive(false);
-            return;
-        }
+        if (selectedItem == null && !removeMode) return;
 
         if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, 100f, gridLayer))
             return;
 
         Vector3Int cellPos = grid.WorldToCell(hit.point);
-
-        if (!IsInsideGrid(cellPos, selectedItem.gridSize))
-            return;
+        if (!IsInsideGrid(cellPos, selectedItem? selectedItem.gridSize : Vector2Int.one)) return;
 
         Vector3 placePos = grid.GetCellCenterWorld(cellPos);
 
         if (cellPos != previousCell)
         {
             previousCell = cellPos;
-            MovePreview(placePos);
+            if (!removeMode)
+                MovePreview(placePos);
             UpdateCursor(cellPos);
         }
+    }
 
-        if (Input.GetMouseButtonDown(0))
-            PlaceItem(cellPos, placePos);
+    private void SubscribeClicks()
+    {
+        if (!isSubscribedToClick)
+        {
+            InputManager.Instance.OnLeftClick += HandleLeftClick;
+            InputManager.Instance.OnRightClick += HandleRightClick;
+            isSubscribedToClick = true;
+        }
+    }
 
-        if (Input.GetMouseButtonDown(1))
+    private void UnsubscribeClicks()
+    {
+        if (isSubscribedToClick)
+        {
+            InputManager.Instance.OnLeftClick -= HandleLeftClick;
+            InputManager.Instance.OnRightClick -= HandleRightClick;
+            isSubscribedToClick = false;
+        }
+    }
+
+    private void HandleLeftClick()
+    {
+        if (InputManager.Instance.IsPointedOverUI()) return;
+        if (removeMode)
+            TryRemoveAtCursor();
+        else
+            TryPlaceAtCursor();
+    }
+
+    private void HandleRightClick()
+    {
+        if (InputManager.Instance.IsPointedOverUI()) return;
+        if (!removeMode)
             CancelPlacement();
+    }
+
+    private void TryPlaceAtCursor()
+    {
+        if (selectedItem == null) return;
+
+        if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, 100f, gridLayer))
+            return;
+
+        Vector3Int cellPos = grid.WorldToCell(hit.point);
+        Vector3 placePos = grid.GetCellCenterWorld(cellPos);
+
+        if (!IsInsideGrid(cellPos, selectedItem.gridSize)) return;
+
+        PlaceItem(cellPos, placePos);
+    }
+
+    private void TryRemoveAtCursor()
+    {
+        if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, 100f, gridLayer))
+            return;
+
+        Vector3Int cellPos = grid.WorldToCell(hit.point);
+        if (!placedObjects.TryGetValue(cellPos, out var obj)) return;
+
+        Destroy(obj);
+        placedObjects.Remove(cellPos);
     }
 
     private void MovePreview(Vector3 position)
@@ -88,24 +163,22 @@ public class GridPlacementManager : MonoBehaviour
         if (cursor == null) return;
 
         Vector3 position = grid.CellToWorld(cellPos);
-
         cursor.UpdatePosition(position);
-        cursor.UpdateColor(CanPlaceObject(cellPos, selectedItem.gridSize));
+        if (!removeMode)
+            cursor.UpdateColor(CanPlaceObject(cellPos, selectedItem?.gridSize ?? Vector2Int.one));
     }
 
     private void PlaceItem(Vector3Int cellPos, Vector3 position)
     {
-        if (!CanPlaceObject(cellPos, selectedItem.gridSize))
-            return;
+        if (!CanPlaceObject(cellPos, selectedItem.gridSize)) return;
 
         GameObject obj = Instantiate(selectedItem.prefab, position, Quaternion.identity, objectsParent);
 
         if (obj.TryGetComponent<PlantBehaviour>(out var plant) && selectedItem is PlantDataSO plantData)
-        {
             plant.Initialize(plantData);
-        }
 
-        RegisterObject(cellPos, obj, selectedItem.gridSize);
+        if (selectedItem.category != ItemCategory.Animal)
+            RegisterObject(cellPos, obj, selectedItem.gridSize);
 
         ItemEvents.OnItemAdded?.Invoke(selectedItem);
     }
@@ -114,6 +187,8 @@ public class GridPlacementManager : MonoBehaviour
     {
         DestroyPreview();
         selectedItem = null;
+        removeMode = false;
+        UnsubscribeClicks();
 
         if (cursor != null)
             cursor.SetActive(false);

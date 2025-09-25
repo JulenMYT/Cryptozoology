@@ -60,4 +60,13 @@ public class GardenState : MonoBehaviour
     {
         return new Dictionary<string, int>(objectCounts);
     }
+
+    public void DebugGardenState()
+    {
+        Debug.Log("Garden state:");
+        foreach (var kvp in objectCounts)
+        {
+            Debug.Log($"{kvp.Key}: {kvp.Value}");
+        }
+    }
 }

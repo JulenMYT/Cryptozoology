@@ -9,8 +9,6 @@ public class ItemSlotButton : MonoBehaviour
 
     private ItemData itemData;
 
-    public Action<ItemData> OnClickItem;
-
     public void Initialize(ItemData item)
     {
         itemData = item;
@@ -20,13 +18,13 @@ public class ItemSlotButton : MonoBehaviour
         if (button != null)
         {
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(HandleClick);
+            button.onClick.AddListener(OnButtonClicked);
         }
     }
 
-    private void HandleClick()
+    private void OnButtonClicked()
     {
-        OnClickItem?.Invoke(itemData);
+        ItemEvents.OnItemSelected?.Invoke(itemData);
     }
 
     private void OnDestroy()

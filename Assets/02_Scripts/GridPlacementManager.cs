@@ -15,6 +15,16 @@ public class GridPlacementManager : MonoBehaviour
     private Vector3Int previousCell;
     private Dictionary<Vector3Int, GameObject> placedObjects = new();
 
+    private void OnEnable()
+    {
+        ItemEvents.OnItemSelected += SelectItem;
+    }
+
+    private void OnDisable()
+    {
+        ItemEvents.OnItemSelected -= SelectItem;
+    }
+
     public void SelectItem(ItemData item)
     {
         selectedItem = item;

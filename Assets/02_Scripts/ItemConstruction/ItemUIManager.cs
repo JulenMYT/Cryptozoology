@@ -10,6 +10,8 @@ public class ItemUIManager : MonoBehaviour
     [SerializeField] private ItemSlotButton itemSlotPrefab;
     [SerializeField] private Transform itemListContainer;
 
+    [SerializeField] private GridPlacementManager gridPlacementManager;
+
     [Header("Category Data")]
     [SerializeField] private CategoryData[] categories;
 
@@ -73,6 +75,6 @@ public class ItemUIManager : MonoBehaviour
 
     private void PlaceItemInScene(ItemData item)
     {
-        Debug.Log("Place item: " + item.displayName);
+        gridPlacementManager.SelectItem(item);
     }
 }

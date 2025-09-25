@@ -10,10 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea49e32fb88f5204b953fab6873950a3, type: 3}
-  m_Name: Hive
+  m_Name: RabbitStatue
   m_EditorClassIdentifier: 
-  id: 3
-  displayName: Hive
+  id: 4
+  displayName: RabbitStatue
   category: 2
   icon: {fileID: 21300000, guid: be601150b572f52478a38542293c320f, type: 3}
-  prefab: {fileID: 4510741749742937985, guid: 2a6ffbba9aa77b44eb32fc6110297b19, type: 3}
+  prefab: {fileID: 853805462705800792, guid: 0ad35faf80adadc409ff6fce57120713, type: 3}
+  gridSize: {x: 2, y: 1}

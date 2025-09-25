@@ -16,4 +16,6 @@ public class ItemData : ScriptableObject
     public string displayName;
     public ItemCategory category;
     public Sprite icon;
+    public GameObject prefab;
+    public Vector2Int gridSize = Vector2Int.one;
 }

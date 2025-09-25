@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48b5949d0db7acb4990b8f95e76b2a8c, type: 3}
+  m_Name: CarrotPlant
+  m_EditorClassIdentifier: 
+  id: 0
+  displayName: Carrot
+  category: 0
+  icon: {fileID: 21300000, guid: 2c8db7c0aba0b344f9fc2c14ad01fe90, type: 3}
+  prefab: {fileID: 8910400030175194657, guid: 246698738f369f149b6dea6354a9892e, type: 3}
+  gridSize: {x: 1, y: 1}
+  totalGrowthTime: 20
+  growthSprites:
+  - {fileID: 925289438, guid: 136f62ddae4f48d4687b8c04df7b962a, type: 3}
+  - {fileID: -777603375, guid: 136f62ddae4f48d4687b8c04df7b962a, type: 3}
+  - {fileID: 499356887, guid: 136f62ddae4f48d4687b8c04df7b962a, type: 3}
+  matureId: 1

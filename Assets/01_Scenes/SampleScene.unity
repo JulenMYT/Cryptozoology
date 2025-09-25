@@ -1343,7 +1343,6 @@ MonoBehaviour:
   buttonContainer: {fileID: 384434108}
   itemSlotPrefab: {fileID: -8410039871891196733, guid: ad12c81bff3724f4096e316b7428839c, type: 3}
   itemListContainer: {fileID: 1491468197}
-  gridPlacementManager: {fileID: 689279104}
   categories:
   - {fileID: 11400000, guid: a26f715e87a6f3e459e6503f07f86835, type: 2}
   - {fileID: 11400000, guid: e6308795595e48144b36fd8f22428f79, type: 2}

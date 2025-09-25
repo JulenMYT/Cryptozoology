@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea49e32fb88f5204b953fab6873950a3, type: 3}
   m_Name: RabbitStatue
   m_EditorClassIdentifier: 
-  id: 4
+  id: 5
   displayName: RabbitStatue
   category: 2
   icon: {fileID: 21300000, guid: be601150b572f52478a38542293c320f, type: 3}

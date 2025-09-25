@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea49e32fb88f5204b953fab6873950a3, type: 3}
   m_Name: Hive
   m_EditorClassIdentifier: 
-  id: 3
+  id: 4
   displayName: Hive
   category: 2
   icon: {fileID: 21300000, guid: be601150b572f52478a38542293c320f, type: 3}
   prefab: {fileID: 4510741749742937985, guid: 2a6ffbba9aa77b44eb32fc6110297b19, type: 3}
+  gridSize: {x: 1, y: 1}

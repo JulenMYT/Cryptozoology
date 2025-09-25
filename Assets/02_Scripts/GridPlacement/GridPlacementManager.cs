@@ -99,7 +99,15 @@ public class GridPlacementManager : MonoBehaviour
             return;
 
         GameObject obj = Instantiate(selectedItem.prefab, position, Quaternion.identity, objectsParent);
+
+        if (obj.TryGetComponent<PlantBehaviour>(out var plant) && selectedItem is PlantDataSO plantData)
+        {
+            plant.Initialize(plantData);
+        }
+
         RegisterObject(cellPos, obj, selectedItem.gridSize);
+
+        ItemEvents.OnItemAdded?.Invoke(selectedItem);
     }
 
     private void CancelPlacement()

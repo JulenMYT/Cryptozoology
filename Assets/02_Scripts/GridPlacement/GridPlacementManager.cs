@@ -41,8 +41,6 @@ public class GridPlacementManager : MonoBehaviour
         if (item.prefab != null)
         {
             previewObject = Instantiate(item.prefab, Vector3.zero, Quaternion.identity, objectsParent);
-            if (previewObject.TryGetComponent<Collider>(out var col))
-                col.enabled = false;
         }
 
         if (cursor != null)
@@ -177,10 +175,18 @@ public class GridPlacementManager : MonoBehaviour
         if (obj.TryGetComponent<PlantBehaviour>(out var plant) && selectedItem is PlantDataSO plantData)
             plant.Initialize(plantData);
 
+        if (selectedItem.category == ItemCategory.Animal)
+        {
+            if (obj.TryGetComponent<IAnimal>(out var animal))
+            {
+                animal.Initialize();
+            }
+        }
+
         if (selectedItem.category != ItemCategory.Animal)
             RegisterObject(cellPos, obj, selectedItem.gridSize);
 
-        ItemEvents.OnItemAdded?.Invoke(selectedItem);
+        ItemEvents.OnItemAdded?.Invoke(selectedItem.id, obj);
     }
 
     private void CancelPlacement()

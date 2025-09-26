@@ -4,25 +4,21 @@ using UnityEngine;
 public class GardenState : MonoBehaviour
 {
     private Dictionary<string, int> objectCounts = new ();
+    private Dictionary<string, List<GameObject>> objectRefs = new();
 
     private void OnEnable()
     {
-        ItemEvents.OnItemAdded += OnItemAdded;
+        ItemEvents.OnItemAdded += AddObject;
         ItemEvents.OnItemReplaced += ReplaceObject;
     }
 
     private void OnDisable()
     {
-        ItemEvents.OnItemAdded -= OnItemAdded;
+        ItemEvents.OnItemAdded -= AddObject;
         ItemEvents.OnItemReplaced -= ReplaceObject;
     }
 
-    private void OnItemAdded(ItemData item)
-    {
-        AddObject(item.id);
-    }
-
-    public void AddObject(string id)
+    public void AddObject(string id, GameObject obj = null)
     {
         if (string.IsNullOrEmpty(id)) return;
 
@@ -30,25 +26,35 @@ public class GardenState : MonoBehaviour
             objectCounts[id]++;
         else
             objectCounts[id] = 1;
+
+        if (obj != null)
+        {
+            if (!objectRefs.ContainsKey(id))
+                objectRefs[id] = new List<GameObject>();
+            objectRefs[id].Add(obj);
+        }
     }
 
-    public void RemoveObject(string id)
+    public void RemoveObject(string id, GameObject obj = null)
     {
-        if (string.IsNullOrEmpty(id) || !objectCounts.ContainsKey(id))
-        {
-            Debug.LogWarning($"Attempted to remove object with id '{id}' which does not exist in the garden state.");
-            return;
-        }
+        if (string.IsNullOrEmpty(id) || !objectCounts.ContainsKey(id)) return;
 
         objectCounts[id]--;
         if (objectCounts[id] <= 0)
             objectCounts.Remove(id);
+
+        if (obj != null && objectRefs.ContainsKey(id))
+        {
+            objectRefs[id].Remove(obj);
+            if (objectRefs[id].Count == 0)
+                objectRefs.Remove(id);
+        }
     }
 
-    public void ReplaceObject(string oldId, string newId)
+    public void ReplaceObject(string oldId, string newId, GameObject obj = null)
     {
-        RemoveObject(oldId);
-        AddObject(newId);
+        RemoveObject(oldId, obj);
+        AddObject(newId, obj);
     }
 
     public int GetCount(string id)

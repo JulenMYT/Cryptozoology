@@ -35,7 +35,7 @@ public class PlantBehaviour : MonoBehaviour
                 visual.SetSprite(data.growthSprites[stage]);
 
             if (stage == data.growthSprites.Length - 1 && !string.IsNullOrEmpty(data.matureId))
-                ItemEvents.OnItemReplaced?.Invoke(data.id, data.matureId);
+                ItemEvents.OnItemReplaced?.Invoke(data.id, data.matureId, gameObject);
         }
     }
 }

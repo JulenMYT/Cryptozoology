@@ -1,5 +1,8 @@
+using System;
+using UnityEngine;
+
 public static class ItemEvents
 {
-    public static System.Action<ItemData> OnItemAdded;
-    public static System.Action<string, string> OnItemReplaced;
+    public static Action<string, GameObject> OnItemAdded;
+    public static Action<string, string, GameObject> OnItemReplaced;
 }

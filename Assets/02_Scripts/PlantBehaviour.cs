@@ -1,11 +1,12 @@
 using UnityEngine;
 
-public class PlantBehaviour : MonoBehaviour
+public class PlantBehaviour : MonoBehaviour, IEdible
 {
     private PlantDataSO data;
     private int stage;
     private float timer;
     private float stageDuration;
+    private int portionsLeft;
 
     private PlantVisual visual;
 
@@ -14,6 +15,7 @@ public class PlantBehaviour : MonoBehaviour
         data = plantData;
         stage = 0;
         timer = 0f;
+        portionsLeft = data.portions;
         stageDuration = data.totalGrowthTime / Mathf.Max(data.growthSprites.Length - 1, 1);
 
         visual = GetComponentInChildren<PlantVisual>();
@@ -35,7 +37,26 @@ public class PlantBehaviour : MonoBehaviour
                 visual.SetSprite(data.growthSprites[stage]);
 
             if (stage == data.growthSprites.Length - 1 && !string.IsNullOrEmpty(data.matureId))
-                ItemEvents.OnItemReplaced?.Invoke(data.id, data.matureId, gameObject);
+            {
+                ObjectEvents.OnObjectReplaced?.Invoke(data.id, data.matureId, gameObject);
+            }
         }
+    }
+
+    public bool IsDepleted() => portionsLeft <= 0;
+
+    public bool CanBeEaten()
+    {
+        return stage >= data.growthSprites.Length - 1 && portionsLeft > 0;
+    }
+
+    public void Eat()
+    {
+        portionsLeft--;
+    }
+
+    public string GetId()
+    {
+        return data != null ? data.id : string.Empty;
     }
 }

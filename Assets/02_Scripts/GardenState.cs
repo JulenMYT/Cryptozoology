@@ -8,14 +8,16 @@ public class GardenState : MonoBehaviour
 
     private void OnEnable()
     {
-        ItemEvents.OnItemAdded += AddObject;
-        ItemEvents.OnItemReplaced += ReplaceObject;
+        ObjectEvents.OnObjectAdded += AddObject;
+        ObjectEvents.OnObjectRemoved += RemoveObject;
+        ObjectEvents.OnObjectReplaced += ReplaceObject;
     }
 
     private void OnDisable()
     {
-        ItemEvents.OnItemAdded -= AddObject;
-        ItemEvents.OnItemReplaced -= ReplaceObject;
+        ObjectEvents.OnObjectAdded -= AddObject;
+        ObjectEvents.OnObjectRemoved -= RemoveObject;
+        ObjectEvents.OnObjectReplaced -= ReplaceObject;
     }
 
     public void AddObject(string id, GameObject obj = null)

@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class GridPlacementManager : MonoBehaviour
 {
@@ -11,10 +11,10 @@ public class GridPlacementManager : MonoBehaviour
     [SerializeField] private int gridHeight = 10;
     [SerializeField] private ItemUIManager itemUIManager;
 
-    private ItemData selectedItem;
+    private ObjectData selectedItem;
     private GameObject previewObject;
     private Vector3Int previousCell;
-    private Dictionary<Vector3Int, GameObject> placedObjects = new();
+    private ObjectGrid objectGrid = new ObjectGrid();
     private bool removeMode = false;
     private bool isSubscribedToClick = false;
 
@@ -31,17 +31,14 @@ public class GridPlacementManager : MonoBehaviour
         UnsubscribeClicks();
     }
 
-    public void SelectItem(ItemData item)
+    public void SelectItem(ObjectData item)
     {
         selectedItem = item;
         removeMode = false;
-
         DestroyPreview();
 
         if (item.prefab != null)
-        {
             previewObject = Instantiate(item.prefab, Vector3.zero, Quaternion.identity, objectsParent);
-        }
 
         if (cursor != null)
         {
@@ -55,9 +52,9 @@ public class GridPlacementManager : MonoBehaviour
     public void SetRemoveMode()
     {
         removeMode = true;
-
         DestroyPreview();
         SubscribeClicks();
+
         if (cursor != null)
         {
             cursor.SetActive(true);
@@ -74,7 +71,7 @@ public class GridPlacementManager : MonoBehaviour
             return;
 
         Vector3Int cellPos = grid.WorldToCell(hit.point);
-        if (!IsInsideGrid(cellPos, selectedItem? selectedItem.gridSize : Vector2Int.one)) return;
+        if (!IsInsideGrid(cellPos, selectedItem?.gridSize ?? Vector2Int.one)) return;
 
         Vector3 placePos = grid.GetCellCenterWorld(cellPos);
 
@@ -110,6 +107,7 @@ public class GridPlacementManager : MonoBehaviour
     private void HandleLeftClick()
     {
         if (InputManager.Instance.IsPointedOverUI()) return;
+
         if (removeMode)
             TryRemoveAtCursor();
         else
@@ -144,10 +142,26 @@ public class GridPlacementManager : MonoBehaviour
             return;
 
         Vector3Int cellPos = grid.WorldToCell(hit.point);
-        if (!placedObjects.TryGetValue(cellPos, out var obj)) return;
+        if (objectGrid.TryGetObject(cellPos, out var obj))
+            RemoveObject(obj);
+    }
+
+    public void RemoveObjectRequested(GameObject obj)
+    {
+        RemoveObject(obj);
+    }
+
+    public void RemoveObject(GameObject obj)
+    {
+        if (obj == null) return;
+
+        if (obj.TryGetComponent<ObjectIdentity>(out var identity))
+        {
+            objectGrid.Remove(obj);
+            ObjectEvents.OnObjectRemoved?.Invoke(identity.Id, obj);
+        }
 
         Destroy(obj);
-        placedObjects.Remove(cellPos);
     }
 
     private void MovePreview(Vector3 position)
@@ -172,21 +186,37 @@ public class GridPlacementManager : MonoBehaviour
 
         GameObject obj = Instantiate(selectedItem.prefab, position, Quaternion.identity, objectsParent);
 
-        if (obj.TryGetComponent<PlantBehaviour>(out var plant) && selectedItem is PlantDataSO plantData)
-            plant.Initialize(plantData);
+        if (!obj.TryGetComponent<ObjectIdentity>(out var identity))
+            identity = obj.AddComponent<ObjectIdentity>();
 
-        if (selectedItem.category == ItemCategory.Animal)
+        identity.Id = selectedItem.id;
+        identity.Cell = cellPos;
+        identity.Size = selectedItem.gridSize;
+
+        switch (selectedItem.category)
         {
-            if (obj.TryGetComponent<IAnimal>(out var animal))
-            {
-                animal.Initialize();
-            }
+            case ItemCategory.Plant:
+                if (obj.TryGetComponent<PlantBehaviour>(out var plant) && selectedItem is PlantDataSO plantData)
+                    plant.Initialize(plantData);
+                objectGrid.Register(cellPos, obj, selectedItem.gridSize);
+                break;
+
+            case ItemCategory.Animal:
+                if (obj.TryGetComponent<IAnimal>(out var animal))
+                    animal.Initialize();
+                break;
+
+            case ItemCategory.Production:
+            case ItemCategory.Building:
+            case ItemCategory.Resource:
+                objectGrid.Register(cellPos, obj, selectedItem.gridSize);
+                break;
+            default:
+                objectGrid.Register(cellPos, obj, selectedItem.gridSize);
+                break;
         }
 
-        if (selectedItem.category != ItemCategory.Animal)
-            RegisterObject(cellPos, obj, selectedItem.gridSize);
-
-        ItemEvents.OnItemAdded?.Invoke(selectedItem.id, obj);
+        ObjectEvents.OnObjectAdded?.Invoke(selectedItem.id, obj);
     }
 
     private void CancelPlacement()
@@ -210,11 +240,9 @@ public class GridPlacementManager : MonoBehaviour
     {
         for (int x = 0; x < size.x; x++)
             for (int z = 0; z < size.y; z++)
-            {
-                Vector3Int checkPos = new(cellPos.x + x, cellPos.y, cellPos.z + z);
-                if (IsCellOccupied(checkPos))
+                if (objectGrid.IsOccupied(new Vector3Int(cellPos.x + x, cellPos.y, cellPos.z + z)))
                     return false;
-            }
+
         return true;
     }
 
@@ -224,16 +252,30 @@ public class GridPlacementManager : MonoBehaviour
                cellPos.x + size.x <= gridWidth &&
                cellPos.z + size.y <= gridHeight;
     }
+}
 
-    private void RegisterObject(Vector3Int cellPos, GameObject obj, Vector2Int size)
+public class ObjectGrid
+{
+    private Dictionary<Vector3Int, GameObject> grid = new();
+
+    public void Register(Vector3Int cell, GameObject obj, Vector2Int size)
     {
         for (int x = 0; x < size.x; x++)
             for (int z = 0; z < size.y; z++)
-            {
-                Vector3Int pos = new(cellPos.x + x, cellPos.y, cellPos.z + z);
-                placedObjects[pos] = obj;
-            }
+                grid[new Vector3Int(cell.x + x, cell.y, cell.z + z)] = obj;
     }
 
-    private bool IsCellOccupied(Vector3Int cell) => placedObjects.ContainsKey(cell);
+    public void Remove(GameObject obj)
+    {
+        if (obj.TryGetComponent<ObjectIdentity>(out var identity))
+        {
+            for (int x = 0; x < identity.Size.x; x++)
+                for (int z = 0; z < identity.Size.y; z++)
+                    grid.Remove(new Vector3Int(identity.Cell.x + x, identity.Cell.y, identity.Cell.z + z));
+        }
+    }
+
+    public bool IsOccupied(Vector3Int cell) => grid.ContainsKey(cell);
+
+    public bool TryGetObject(Vector3Int cell, out GameObject obj) => grid.TryGetValue(cell, out obj);
 }

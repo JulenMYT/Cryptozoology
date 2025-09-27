@@ -13,7 +13,7 @@ public class ItemUIManager : MonoBehaviour
     [SerializeField] private Button removeModeButton;
 
     private Dictionary<ItemCategory, Sprite> categoryIcons;
-    public event Action<ItemData> OnItemSelected;
+    public event Action<ObjectData> OnItemSelected;
     public event Action OnRemoveModeSelected;
 
     private void Awake()
@@ -65,7 +65,7 @@ public class ItemUIManager : MonoBehaviour
         }
     }
 
-    private void HandleItemSelected(ItemData item)
+    private void HandleItemSelected(ObjectData item)
     {
         OnItemSelected?.Invoke(item);
     }

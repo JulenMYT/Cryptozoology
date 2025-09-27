@@ -3,9 +3,9 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Game/Item Database")]
 public class ItemDatabase : ScriptableObject
 {
-    public ItemData[] items;
+    public ObjectData[] items;
 
-    public ItemData GetItemById(string id)
+    public ObjectData GetItemById(string id)
     {
         foreach (var item in items)
         {

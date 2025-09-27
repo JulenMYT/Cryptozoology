@@ -10,7 +10,7 @@ public enum ItemCategory
 }
 
 [CreateAssetMenu(menuName = "Game/Item")]
-public class ItemData : ScriptableObject
+public class ObjectData : ScriptableObject
 {
     public string id;
     public string displayName;

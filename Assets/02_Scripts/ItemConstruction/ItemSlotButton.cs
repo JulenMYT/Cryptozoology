@@ -7,10 +7,10 @@ public class ItemSlotButton : MonoBehaviour
     [SerializeField] private Image iconImage;
     [SerializeField] private Button button;
 
-    private ItemData itemData;
+    private ObjectData itemData;
 
-    public event Action<ItemData> OnItemClicked;
-    public void Initialize(ItemData item)
+    public event Action<ObjectData> OnItemClicked;
+    public void Initialize(ObjectData item)
     {
         itemData = item;
         if (iconImage != null)

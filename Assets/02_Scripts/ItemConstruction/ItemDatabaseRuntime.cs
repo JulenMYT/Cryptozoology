@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 public static class ItemDatabaseRuntime
 {
-    private static Dictionary<string, ItemData> lookupById;
-    private static Dictionary<ItemCategory, List<ItemData>> lookupByCategory;
+    private static Dictionary<string, ObjectData> lookupById;
+    private static Dictionary<ItemCategory, List<ObjectData>> lookupByCategory;
 
     private static string databasePath = "ItemDatabase";
 
     public static void Initialize(ItemDatabase database)
     {
-        lookupById = new Dictionary<string, ItemData>();
-        lookupByCategory = new Dictionary<ItemCategory, List<ItemData>>();
+        lookupById = new Dictionary<string, ObjectData>();
+        lookupByCategory = new Dictionary<ItemCategory, List<ObjectData>>();
 
         foreach (var item in database.items)
         {
@@ -19,7 +19,7 @@ public static class ItemDatabaseRuntime
                 lookupById.Add(item.id, item);
 
             if (!lookupByCategory.ContainsKey(item.category))
-                lookupByCategory[item.category] = new List<ItemData>();
+                lookupByCategory[item.category] = new List<ObjectData>();
 
             lookupByCategory[item.category].Add(item);
         }
@@ -31,7 +31,7 @@ public static class ItemDatabaseRuntime
             Initialize(Resources.Load<ItemDatabase>(databasePath));
     }
 
-    public static ItemData Get(string id)
+    public static ObjectData Get(string id)
     {
         EnsureInitialized();
 
@@ -39,12 +39,12 @@ public static class ItemDatabaseRuntime
         return item;
     }
 
-    public static List<ItemData> GetByCategory(ItemCategory category)
+    public static List<ObjectData> GetByCategory(ItemCategory category)
     {
         EnsureInitialized();
 
         if (lookupByCategory.TryGetValue(category, out var list))
             return list;
-        return new List<ItemData>();
+        return new List<ObjectData>();
     }
 }

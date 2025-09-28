@@ -10,6 +10,7 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
 
     private IEdible targetFood;
     private bool active;
+    private bool eating = false;
 
     public event Action<string> Eating;
     public event Action DoneEating;
@@ -32,6 +33,8 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
     public void Deactivate()
     {
         active = false;
+        targetFood = null;
+        eating = false;
         agent.ResetPath();
     }
 
@@ -45,37 +48,49 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
             return;
         }
 
+        if (eating)
+            return;
+
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
         {
+            eating = true;
             StartCoroutine(EatRoutine());
         }
     }
 
     private void MoveToTarget()
     {
-        if (targetFood != null && agent.isOnNavMesh)
-            agent.SetDestination(((MonoBehaviour)targetFood).transform.position);
+        if (targetFood == null || !agent.isOnNavMesh) return;
+
+        Vector3 direction = ((MonoBehaviour)targetFood).transform.position - transform.position;
+        direction.y = 0;
+        direction.Normalize();
+
+        float stopDistance = agent.stoppingDistance;
+        Vector3 targetPos = ((MonoBehaviour)targetFood).transform.position - direction * stopDistance;
+
+        agent.SetDestination(targetPos);
     }
 
     private IEnumerator EatRoutine()
     {
-        active = false;
-        agent.ResetPath();
+        if (targetFood == null) yield break;
 
         string id = targetFood.GetId();
-
         Eating?.Invoke(id);
-
-        if (animator != null)
-            animator.SetTrigger("Eat");
-
         targetFood.Eat();
+
+        //if (animator != null)
+        //    animator.Play("Eat");
+
         yield return new WaitForSeconds(2f);
 
-        if (!targetFood.CanBeEaten())
-            FinishEating();
+        if (targetFood != null && targetFood.CanBeEaten())
+        {
+            eating = false;
+        }
         else
-            active = true;
+            FinishEating();
     }
 
     private void FinishEating()
@@ -83,5 +98,6 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
         DoneEating?.Invoke();
 
         targetFood = null;
+        eating = false;
     }
 }

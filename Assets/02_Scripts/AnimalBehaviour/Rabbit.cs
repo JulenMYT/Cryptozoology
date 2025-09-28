@@ -37,8 +37,7 @@ public class Rabbit : MonoBehaviour, IAnimal
         {
             if (CheckVisitingCondition())
             {
-                visitingGarden = true;
-                controller.SetBehaviour(wanderBehaviour);
+                BecomeVisitor();
             }
             return;
         }
@@ -55,7 +54,10 @@ public class Rabbit : MonoBehaviour, IAnimal
             {
                 IEdible target = DetectFood();
                 if (target != null)
+                {
                     eatingBehaviour.SetTarget(target);
+                    controller.SetBehaviour(eatingBehaviour);
+                }
             }
 
             return;
@@ -94,21 +96,35 @@ public class Rabbit : MonoBehaviour, IAnimal
         IsResident = true;
         isActive = true;
         controller.SetBehaviour(wanderBehaviour);
+        wanderBehaviour.SetZone(NavZone.Garden);
         NavMeshZoneManager.SetAgentZone(agent, NavZone.Garden);
     }
 
     public void SpawnAsVisitor()
     {
         IsResident = false;
+        visitingGarden = false;
         isActive = true;
         controller.SetBehaviour(wanderBehaviour);
+        wanderBehaviour.SetZone(NavZone.Outside);
         NavMeshZoneManager.SetAgentZone(agent, NavZone.Outside);
+    }
+
+    public void BecomeVisitor()
+    {
+        IsResident = false;
+        visitingGarden = true;
+        isActive = true;
+        controller.SetBehaviour(wanderBehaviour);
+        wanderBehaviour.SetZone(NavZone.Garden);
+        NavMeshZoneManager.SetAgentZone(agent, NavZone.All);
     }
 
     public void BecomeResident()
     {
         IsResident = true;
         controller.SetBehaviour(wanderBehaviour);
+        wanderBehaviour.SetZone(NavZone.Garden);
 
         if (TryGetComponent<ObjectIdentity>(out var identity))
             ObjectEvents.OnObjectAdded?.Invoke(identity.Id, gameObject);

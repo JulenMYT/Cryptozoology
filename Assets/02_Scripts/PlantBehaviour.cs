@@ -57,6 +57,6 @@ public class PlantBehaviour : MonoBehaviour, IEdible
 
     public string GetId()
     {
-        return data != null ? data.id : string.Empty;
+        return data != null ? data.matureId : string.Empty;
     }
 }

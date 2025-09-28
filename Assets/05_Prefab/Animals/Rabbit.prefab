@@ -91,8 +91,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wanderRadius: 5
-  minWaitTime: 1
-  maxWaitTime: 3
+  minWaitTime: 2
+  maxWaitTime: 4
   agent: {fileID: 6600765044953645119}
 --- !u!1 &1678518594669431386
 GameObject:

@@ -13,6 +13,10 @@ public class AnimalWander : MonoBehaviour, IAnimalBehaviour
     private float waitTime;
     private bool active = false;
 
+    private NavZone allowedZone = NavZone.Garden;
+
+    public bool IsActive() => active;
+
     void Start()
     {
         waitTime = Random.Range(minWaitTime, maxWaitTime);
@@ -34,20 +38,20 @@ public class AnimalWander : MonoBehaviour, IAnimalBehaviour
     {
         if (agent.isOnNavMesh)
         {
-            Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
+            int mask = NavMeshZoneManager.GetMask(allowedZone);
+            Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, mask);
             agent.SetDestination(newPos);
             timer = 0;
             waitTime = Random.Range(minWaitTime, maxWaitTime);
         }
     }
 
-    Vector3 RandomNavSphere(Vector3 origin, float radius, int layermask, int maxAttempts = 20)
+    Vector3 RandomNavSphere(Vector3 origin, float radius, int mask, int maxAttempts = 20)
     {
         for (int i = 0; i < maxAttempts; i++)
         {
             Vector3 randomPoint = origin + Random.insideUnitSphere * radius;
-            NavMeshHit hit;
-            if (NavMesh.SamplePosition(randomPoint, out hit, 1f, layermask))
+            if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 10f, mask))
             {
                 return hit.position;
             }
@@ -63,8 +67,12 @@ public class AnimalWander : MonoBehaviour, IAnimalBehaviour
 
     public void Deactivate()
     {
-        Debug.Log("Animal wandering deactivated.");
         active = false;
         agent.ResetPath();
+    }
+
+    public void SetZone(NavZone zone)
+    {
+        allowedZone = zone;
     }
 }

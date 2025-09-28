@@ -203,7 +203,7 @@ public class GridPlacementManager : MonoBehaviour
 
             case ItemCategory.Animal:
                 if (obj.TryGetComponent<IAnimal>(out var animal))
-                    animal.Initialize();
+                    animal.SpawnAsVisitor();
                 break;
 
             case ItemCategory.Production:

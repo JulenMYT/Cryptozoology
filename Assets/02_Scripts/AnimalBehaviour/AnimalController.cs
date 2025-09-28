@@ -6,6 +6,9 @@ public class AnimalController : MonoBehaviour
 
     public void SetBehaviour(IAnimalBehaviour behaviour)
     {
+        if (behaviour.IsActive())
+            return;
+
         if (currentBehaviour != null)
             currentBehaviour.Deactivate();
 

@@ -77,13 +77,15 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
         if (targetFood == null) yield break;
 
         string id = targetFood.GetId();
-        Eating?.Invoke(id);
+        
         targetFood.Eat();
 
         //if (animator != null)
         //    animator.Play("Eat");
 
         yield return new WaitForSeconds(2f);
+
+        Eating?.Invoke(id);
 
         if (targetFood != null && targetFood.CanBeEaten())
         {

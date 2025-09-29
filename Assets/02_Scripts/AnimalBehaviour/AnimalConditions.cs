@@ -21,6 +21,16 @@ public class AnimalConditions : ScriptableObject
     public ConditionList appearingCondition;
     public ConditionList visitCondition;
     public ConditionList residenceCondition;
+
+    public bool CanAppear()
+    {
+        foreach (var condition in appearingCondition.placingConditions)
+        {
+            if (GameManager.Instance.Garden.GetCount(condition.id) < condition.minCount)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }
-
-

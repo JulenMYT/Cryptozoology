@@ -88,8 +88,8 @@ public class GridPlacementManager : MonoBehaviour
     {
         if (!isSubscribedToClick)
         {
-            InputManager.Instance.OnLeftClick += HandleLeftClick;
-            InputManager.Instance.OnRightClick += HandleRightClick;
+            GameManager.Instance.Input.OnLeftClick += HandleLeftClick;
+            GameManager.Instance.Input.OnRightClick += HandleRightClick;
             isSubscribedToClick = true;
         }
     }
@@ -98,15 +98,15 @@ public class GridPlacementManager : MonoBehaviour
     {
         if (isSubscribedToClick)
         {
-            InputManager.Instance.OnLeftClick -= HandleLeftClick;
-            InputManager.Instance.OnRightClick -= HandleRightClick;
+            GameManager.Instance.Input.OnLeftClick -= HandleLeftClick;
+            GameManager.Instance.Input.OnRightClick -= HandleRightClick;
             isSubscribedToClick = false;
         }
     }
 
     private void HandleLeftClick()
     {
-        if (InputManager.Instance.IsPointedOverUI()) return;
+        if (GameManager.Instance.Input.IsPointedOverUI()) return;
 
         if (removeMode)
             TryRemoveAtCursor();
@@ -116,7 +116,7 @@ public class GridPlacementManager : MonoBehaviour
 
     private void HandleRightClick()
     {
-        if (InputManager.Instance.IsPointedOverUI()) return;
+        if (GameManager.Instance.Input.IsPointedOverUI()) return;
         if (!removeMode)
             CancelPlacement();
     }
@@ -158,7 +158,7 @@ public class GridPlacementManager : MonoBehaviour
         if (obj.TryGetComponent<ObjectIdentity>(out var identity))
         {
             objectGrid.Remove(obj);
-            ObjectEvents.OnObjectRemoved?.Invoke(identity.Id, obj);
+            GameManager.Instance.Garden.RemoveObject(identity.Id, obj);
         }
 
         Destroy(obj);
@@ -216,7 +216,7 @@ public class GridPlacementManager : MonoBehaviour
                 break;
         }
 
-        ObjectEvents.OnObjectAdded?.Invoke(selectedItem.id, obj);
+        GameManager.Instance.Garden.AddObject(selectedItem.id, obj);
     }
 
     private void CancelPlacement()

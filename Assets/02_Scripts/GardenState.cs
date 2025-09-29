@@ -6,20 +6,6 @@ public class GardenState : MonoBehaviour
     private Dictionary<string, int> objectCounts = new ();
     private Dictionary<string, List<GameObject>> objectRefs = new();
 
-    private void OnEnable()
-    {
-        ObjectEvents.OnObjectAdded += AddObject;
-        ObjectEvents.OnObjectRemoved += RemoveObject;
-        ObjectEvents.OnObjectReplaced += ReplaceObject;
-    }
-
-    private void OnDisable()
-    {
-        ObjectEvents.OnObjectAdded -= AddObject;
-        ObjectEvents.OnObjectRemoved -= RemoveObject;
-        ObjectEvents.OnObjectReplaced -= ReplaceObject;
-    }
-
     public void AddObject(string id, GameObject obj = null)
     {
         if (string.IsNullOrEmpty(id)) return;

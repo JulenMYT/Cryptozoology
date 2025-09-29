@@ -7,11 +7,12 @@ public class Rabbit : MonoBehaviour, IAnimal
     [SerializeField] private AnimalController controller;
     [SerializeField] private AnimalWander wanderBehaviour;
     [SerializeField] private AnimalEating eatingBehaviour;
+    [SerializeField] private AnimalPatrol patrolBehaviour;
     [SerializeField] private float detectionRadius;
     private NavMeshAgent agent;
 
     private Dictionary<string, int> eatenCounts = new();
-    [SerializeField] private AnimalConditions conditions;
+    [SerializeField] private AnimalDataSO data;
 
     private bool isActive = false;
 
@@ -27,6 +28,8 @@ public class Rabbit : MonoBehaviour, IAnimal
             eatingBehaviour.DoneEating += OnDoneEating;
         }
         agent = GetComponent<NavMeshAgent>();
+
+        agent.avoidancePriority += Random.Range(-10, 10);
     }
 
     private void Update()
@@ -72,7 +75,7 @@ public class Rabbit : MonoBehaviour, IAnimal
             if (hit.TryGetComponent<IEdible>(out var edible) && edible.CanBeEaten())
             {
                 string foodId = edible.GetId();
-                if (conditions.residenceCondition.eatingConditions.Exists(c => c.id == foodId))
+                if (data.conditions.residenceCondition.eatingConditions.Exists(c => c.id == foodId))
                     return edible;
             }
         }
@@ -105,7 +108,7 @@ public class Rabbit : MonoBehaviour, IAnimal
         IsResident = false;
         visitingGarden = false;
         isActive = true;
-        controller.SetBehaviour(wanderBehaviour);
+        controller.SetBehaviour(patrolBehaviour);
         wanderBehaviour.SetZone(NavZone.Outside);
         NavMeshZoneManager.SetAgentZone(agent, NavZone.Outside);
     }
@@ -122,23 +125,25 @@ public class Rabbit : MonoBehaviour, IAnimal
 
     public void BecomeResident()
     {
+        if (IsResident)
+            return;
         IsResident = true;
         controller.SetBehaviour(wanderBehaviour);
         wanderBehaviour.SetZone(NavZone.Garden);
 
         if (TryGetComponent<ObjectIdentity>(out var identity))
-            ObjectEvents.OnObjectAdded?.Invoke(identity.Id, gameObject);
+            GameManager.Instance.Garden.AddObject(identity.Id, gameObject);
     }
 
     public bool CheckResidenceCondition()
     {
-        foreach (var cond in conditions.residenceCondition.eatingConditions)
+        foreach (var cond in data.conditions.residenceCondition.eatingConditions)
         {
             if (!eatenCounts.ContainsKey(cond.id) || eatenCounts[cond.id] < cond.minCount)
                 return false;
         }
 
-        foreach (var cond in conditions.residenceCondition.placingConditions)
+        foreach (var cond in data.conditions.residenceCondition.placingConditions)
         {
             if (GameManager.Instance.Garden.GetCount(cond.id) < cond.minCount)
                 return false;
@@ -149,7 +154,7 @@ public class Rabbit : MonoBehaviour, IAnimal
 
     public bool CheckVisitingCondition()
     {
-        foreach (var cond in conditions.visitCondition.placingConditions)
+        foreach (var cond in data.conditions.visitCondition.placingConditions)
         {
             if (GameManager.Instance.Garden.GetCount(cond.id) < cond.minCount)
                 return false;

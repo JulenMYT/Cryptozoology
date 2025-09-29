@@ -2,23 +2,35 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance { get; private set; }
+    private static string PrefabPath = "GameManagerPrefab";
+    private static GameManager instance;
+    public static GameManager Instance 
+    {
+        get
+        {
+            if (instance == null)
+            {
+                GameObject go = Instantiate(Resources.Load<GameObject>(PrefabPath));
+                instance = go.GetComponent<GameManager>();
+                DontDestroyOnLoad(go);
+            }
+            return instance;
+        }
+    }
+
+    private GameManager() { }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void InitializeBeforeScene()
+    {
+        _ = Instance;
+    }
 
     [Header("Garden")]
     [SerializeField] private GardenState gardenState;
     public GardenState Garden => gardenState;
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        if (gardenState == null)
-            Debug.LogError("GameManager: GardenState reference is missing!");
-    }
+    [Header("Input")]
+    [SerializeField] private InputManager inputManager;
+    public InputManager Input => inputManager;
 }

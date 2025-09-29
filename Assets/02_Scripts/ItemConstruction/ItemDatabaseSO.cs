@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Game/Item Database")]
@@ -14,4 +16,10 @@ public class ItemDatabase : ScriptableObject
         }
         return null;
     }
+
+    public IEnumerable<ObjectData> GetItemsByCategory(ItemCategory category)
+    {
+        return items.Where(item => item.category == category);
+    }
 }
+    

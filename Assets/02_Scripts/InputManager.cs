@@ -3,29 +3,6 @@ using UnityEngine.EventSystems;
 
 public class InputManager : MonoBehaviour
 {
-    private static InputManager instance;
-    public static InputManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("InputManager");
-                instance = go.AddComponent<InputManager>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
-        }
-    }
-
-    private InputManager() { }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void InitializeBeforeScene()
-    {
-        _ = Instance;
-    }
-
     public event System.Action OnLeftClick, OnRightClick;
 
     private void Update()

@@ -129,6 +129,7 @@ Transform:
   - {fileID: 4487098446965513604}
   - {fileID: 8030217167000621611}
   - {fileID: 7809471651028245809}
+  - {fileID: 4548522872936009454}
   - {fileID: 3698705065169167108}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -147,8 +148,9 @@ MonoBehaviour:
   controller: {fileID: 6873622573170812156}
   wanderBehaviour: {fileID: 2936669249516026100}
   eatingBehaviour: {fileID: 800614967670901300}
+  patrolBehaviour: {fileID: 7195954830503434333}
   detectionRadius: 5
-  conditions: {fileID: 11400000, guid: e0cb47c758fc481468fddf1b1bb2e790, type: 2}
+  data: {fileID: 11400000, guid: 95fb55adc1bf61a45994550b15a4e0ae, type: 2}
 --- !u!195 &6600765044953645119
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -215,6 +217,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a8dd45f154bfe84dad7e937c1b98b4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &5289463503301200391
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4548522872936009454}
+  - component: {fileID: 7195954830503434333}
+  m_Layer: 0
+  m_Name: AnimalPatrol
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4548522872936009454
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5289463503301200391}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8927024080102022249}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7195954830503434333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5289463503301200391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65480d224cf3a8d42a905e88252fb0f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agent: {fileID: 6600765044953645119}
+  loop: 1
+  waitTimeAtWaypoint: 0
+  randomizeDirection: 1
 --- !u!1 &8428941743681796796
 GameObject:
   m_ObjectHideFlags: 0

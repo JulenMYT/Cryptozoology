@@ -38,7 +38,11 @@ public class PlantBehaviour : MonoBehaviour, IEdible
 
             if (stage == data.growthSprites.Length - 1 && !string.IsNullOrEmpty(data.matureId))
             {
-                ObjectEvents.OnObjectReplaced?.Invoke(data.id, data.matureId, gameObject);
+                TryGetComponent<ObjectIdentity>(out var identity);
+                if (identity != null)
+                    identity.Id = data.matureId;
+
+                GameManager.Instance.Garden.ReplaceObject(data.id, data.matureId, gameObject);
             }
         }
     }
@@ -53,6 +57,10 @@ public class PlantBehaviour : MonoBehaviour, IEdible
     public void Eat()
     {
         portionsLeft--;
+        if (visual != null)
+        {
+            StartCoroutine(visual.SetColorFor(Color.blue, 1.8f));
+        }
     }
 
     public string GetId()

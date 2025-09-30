@@ -3,16 +3,21 @@ using UnityEngine;
 using UnityEngine.AI;
 using System;
 
-public class Animal : MonoBehaviour     
+public class Animal : MonoBehaviour, IEdible
 {
     [SerializeField] private AnimalController controller;
     [SerializeField] private AnimalWander wanderBehaviour;
     [SerializeField] private AnimalEating eatingBehaviour;
     [SerializeField] private AnimalPatrol patrolBehaviour;
     [SerializeField] private AnimalLeave leaveBehaviour;
+
     [SerializeField] private float leaveDelay;
     private float leaveTimer = 0f;
+
+    private const float foodCheckInterval = 0.5f;
+    private float foodCheckTimer = 0f;
     [SerializeField] private float detectionRadius;
+
     private NavMeshAgent agent;
 
     private Dictionary<string, int> eatenCounts = new();
@@ -45,14 +50,8 @@ public class Animal : MonoBehaviour
 
         if (!IsResident)
         {
-            if (!visitingGarden)
-            {
-                HandlePotentialVisitor();
-            }
-            else
-            {
-                HandleNonResidentBehavior();
-            }
+            if (!visitingGarden) HandlePotentialVisitor();
+            else HandleNonResidentBehavior();
         }
     }
 
@@ -93,6 +92,9 @@ public class Animal : MonoBehaviour
     {
         if (eatingBehaviour.IsActive()) return;
 
+        foodCheckTimer += Time.deltaTime;
+        if (foodCheckTimer < foodCheckInterval) return;
+        foodCheckTimer = 0f;
         IEdible target = DetectFood();
         if (target != null)
         {
@@ -103,8 +105,9 @@ public class Animal : MonoBehaviour
 
     private void StartLeave()
     {
-        leaveTimer = 0f;
+        leaveTimer = 0f;    
         controller.SetBehaviour(leaveBehaviour);
+        leaveBehaviour.FinishedLeaving -= LeaveGarden;
         leaveBehaviour.FinishedLeaving += LeaveGarden;
     }
 
@@ -209,5 +212,22 @@ public class Animal : MonoBehaviour
                 return false;
         }
         return true;
+    }
+
+    public bool CanBeEaten()
+    {
+        if (!IsResident) return false;
+        return true;
+    }
+
+    public void Eat()
+    {
+        GameManager.Instance.Garden.RemoveObject(data.id, gameObject);
+        Destroy(gameObject);
+    }
+
+    public string GetId()
+    {
+        return data.id;
     }
 }

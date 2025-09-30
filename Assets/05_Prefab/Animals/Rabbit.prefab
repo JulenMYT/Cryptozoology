@@ -130,6 +130,7 @@ Transform:
   - {fileID: 8030217167000621611}
   - {fileID: 7809471651028245809}
   - {fileID: 4548522872936009454}
+  - {fileID: 6311238568962271703}
   - {fileID: 3698705065169167108}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -149,6 +150,8 @@ MonoBehaviour:
   wanderBehaviour: {fileID: 2936669249516026100}
   eatingBehaviour: {fileID: 800614967670901300}
   patrolBehaviour: {fileID: 7195954830503434333}
+  leaveBehaviour: {fileID: 3107953100787686970}
+  leaveDelay: 300
   detectionRadius: 5
   data: {fileID: 11400000, guid: 95fb55adc1bf61a45994550b15a4e0ae, type: 2}
 --- !u!195 &6600765044953645119
@@ -217,6 +220,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a8dd45f154bfe84dad7e937c1b98b4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &3891267591931589269
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6311238568962271703}
+  - component: {fileID: 3107953100787686970}
+  m_Layer: 0
+  m_Name: AnimalLeave
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6311238568962271703
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3891267591931589269}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8927024080102022249}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3107953100787686970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3891267591931589269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60db5b36a4ea9dd4e9b97e68cd7db29f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agent: {fileID: 6600765044953645119}
 --- !u!1 &5289463503301200391
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,6 +313,7 @@ MonoBehaviour:
   loop: 1
   waitTimeAtWaypoint: 0
   randomizeDirection: 1
+  stoppingDistance: 1
 --- !u!1 &8428941743681796796
 GameObject:
   m_ObjectHideFlags: 0

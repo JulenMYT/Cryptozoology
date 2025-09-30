@@ -41,42 +41,71 @@ public class AnimalSpawner : MonoBehaviour
 
     private void TrySpawnRandomAnimal()
     {
-        Debug.Log("Attempting to spawn an animal...");
-        if (animals.Count == 0 || spawnPoints.Count == 0 || spawnedAnimalIDs.Count() >= maxAnimals) return;
+        if (!CanSpawn()) return;
 
-        AnimalDataSO animalData = animals[Random.Range(0, animals.Count)];
-        AnimalConditions conditions = animalData.conditions;
+        AnimalDataSO animalData = animals[UnityEngine.Random.Range(0, animals.Count)];
 
-        if (spawnedAnimalIDs.Contains(animalData.id) || GameManager.Instance.Garden.GetCount(animalData.id) >= 2) return;
+        if (!CanSpawnAnimal(animalData)) return;
 
-        if (conditions != null && !conditions.CanAppear()) return;
+        Transform spawnPoint = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
+        SpawnAnimal(animalData, spawnPoint);
+    }
 
-        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
+    private bool CanSpawn()
+    {
+        return animals.Count > 0 && spawnPoints.Count > 0 && spawnedAnimalIDs.Count < maxAnimals;
+    }
 
-        if (animalData.prefab != null)
+    private bool CanSpawnAnimal(AnimalDataSO animalData)
+    {
+        if (spawnedAnimalIDs.Contains(animalData.id)) return false;
+        if (GameManager.Instance.Garden.GetCount(animalData.id) >= 2) return false;
+        if (animalData.conditions != null && !animalData.conditions.CanAppear()) return false;
+        if (animalData.prefab == null) return false;
+
+        return true;
+    }
+
+    private void SpawnAnimal(AnimalDataSO animalData, Transform spawnPoint)
+    {
+        GameObject go = Instantiate(animalData.prefab, spawnPoint.position, spawnPoint.rotation, animalsParent);
+        spawnedAnimalIDs.Add(animalData.id);
+
+        if (!go.TryGetComponent<Animal>(out var animal)) return;
+
+        SetupPatrol(go);
+        SetupLeave(go, spawnPoint);
+
+        animal.SpawnAsVisitor();
+        animal.BecameResident += () => UnregisterAnimal(animalData.id);
+        animal.LeftGarden += () => UnregisterAnimal(animalData.id);
+    }
+
+    private void SetupPatrol(GameObject go)
+    {
+        if (waypointPath == null) return;
+
+        AnimalPatrol patrol = go.GetComponentInChildren<AnimalPatrol>();
+        if (patrol)
         {
-            GameObject go = Instantiate(animalData.prefab, spawnPoint.position, spawnPoint.rotation, animalsParent);
-            spawnedAnimalIDs.Add(animalData.id);
+            patrol.SetWaypoints(waypointPath);
+        }
+        else
+        {
+            Debug.LogWarning($"Animal prefab {go.name} does not have an AnimalPatrol component.");
+        }
+    }
 
-            if (go.TryGetComponent<Animal>(out var animal))
-            {
-                if (waypointPath != null && waypointPath.waypoints.Count > 0)
-                {
-                    AnimalPatrol patrol = go.GetComponentInChildren<AnimalPatrol>();
-                    if (patrol)
-                    {
-                        patrol.SetWaypoints(waypointPath);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Animal prefab {animalData.prefab.name} does not have an AnimalPatrol component.");
-                    }
-                }
-
-                animal.SpawnAsVisitor();
-                animal.BecameResident += () => UnregisterAnimal(animalData.id);
-                animal.LeftGarden += () => UnregisterAnimal(animalData.id);
-            }
+    private void SetupLeave(GameObject go, Transform spawnPoint)
+    {
+        AnimalLeave leave = go.GetComponentInChildren<AnimalLeave>();
+        if (leave)
+        {
+            leave.SetSpawnPoint(spawnPoint);
+        }
+        else
+        {
+            Debug.LogWarning($"Animal prefab {go.name} does not have an AnimalLeave component.");
         }
     }
 

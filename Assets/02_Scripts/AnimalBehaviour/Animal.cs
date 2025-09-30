@@ -9,6 +9,9 @@ public class Animal : MonoBehaviour
     [SerializeField] private AnimalWander wanderBehaviour;
     [SerializeField] private AnimalEating eatingBehaviour;
     [SerializeField] private AnimalPatrol patrolBehaviour;
+    [SerializeField] private AnimalLeave leaveBehaviour;
+    [SerializeField] private float leaveDelay;
+    private float leaveTimer = 0f;
     [SerializeField] private float detectionRadius;
     private NavMeshAgent agent;
 
@@ -38,37 +41,71 @@ public class Animal : MonoBehaviour
 
     private void Update()
     {
-        if (!isActive) return;
-
-        if (!visitingGarden)
-        {
-            if (CheckVisitingCondition())
-            {
-                BecomeVisitor();
-            }
-            return;
-        }
+        if (!isActive || leaveBehaviour.IsActive()) return;
 
         if (!IsResident)
         {
-            if (CheckResidenceCondition())
+            if (!visitingGarden)
             {
-                BecomeResident();
-                return;
+                HandlePotentialVisitor();
             }
-
-            if (!eatingBehaviour.IsActive())
+            else
             {
-                IEdible target = DetectFood();
-                if (target != null)
-                {
-                    eatingBehaviour.SetTarget(target);
-                    controller.SetBehaviour(eatingBehaviour);
-                }
+                HandleNonResidentBehavior();
             }
+        }
+    }
 
+    private void HandlePotentialVisitor()
+    {
+        leaveTimer += Time.deltaTime;
+
+        if (leaveTimer >= leaveDelay)
+        {
+            StartLeave();
             return;
         }
+
+        if (CheckVisitingCondition())
+            BecomeVisitor();
+    }
+
+    private void HandleNonResidentBehavior()
+    {
+        if (CheckResidenceCondition())
+        {
+            BecomeResident();
+            return;
+        }
+
+        leaveTimer += Time.deltaTime;
+
+        if (leaveTimer >= leaveDelay && !eatingBehaviour.IsActive())
+        {
+            StartLeave();
+            return;
+        }
+
+        TryEatFood();
+    }
+
+    private void TryEatFood()
+    {
+        if (eatingBehaviour.IsActive()) return;
+
+        IEdible target = DetectFood();
+        if (target != null)
+        {
+            eatingBehaviour.SetTarget(target);
+            controller.SetBehaviour(eatingBehaviour);
+        }
+    }
+
+    private void StartLeave()
+    {
+        leaveTimer = 0f;
+        controller.SetBehaviour(leaveBehaviour);
+        leaveBehaviour.FinishedLeaving += LeaveGarden;
     }
 
     private IEdible DetectFood()

@@ -33,4 +33,8 @@ public class GameManager : MonoBehaviour
     [Header("Input")]
     [SerializeField] private InputManager inputManager;
     public InputManager Input => inputManager;
+
+    [Header("Encyclopedia")]
+    [SerializeField] private EncyclopediaManager encyclopediaManager;
+    public EncyclopediaManager Encyclopedia => encyclopediaManager;
 }

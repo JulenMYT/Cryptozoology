@@ -1549,6 +1549,7 @@ MonoBehaviour:
   waypointPath: {fileID: 865585624}
   animalsParent: {fileID: 144702285}
   spawnInterval: 10
+  maxAnimals: 5
 --- !u!4 &762373097
 Transform:
   m_ObjectHideFlags: 0

@@ -35,6 +35,7 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
         active = false;
         targetFood = null;
         eating = false;
+        StopAllCoroutines();
         agent.ResetPath();
     }
 

@@ -12,8 +12,10 @@ public class AnimalSpawner : MonoBehaviour
     [SerializeField] private WaypointPath waypointPath;
     [SerializeField] private Transform animalsParent;
     [SerializeField] private float spawnInterval = 10f;
+    [SerializeField] private int maxAnimals = 5;
 
     private float timer;
+    private HashSet<string> spawnedAnimalIDs = new();
 
     private void Awake()
     {
@@ -40,10 +42,12 @@ public class AnimalSpawner : MonoBehaviour
     private void TrySpawnRandomAnimal()
     {
         Debug.Log("Attempting to spawn an animal...");
-        if (animals.Count == 0 || spawnPoints.Count == 0) return;
+        if (animals.Count == 0 || spawnPoints.Count == 0 || spawnedAnimalIDs.Count() >= maxAnimals) return;
 
         AnimalDataSO animalData = animals[Random.Range(0, animals.Count)];
         AnimalConditions conditions = animalData.conditions;
+
+        if (spawnedAnimalIDs.Contains(animalData.id) || GameManager.Instance.Garden.GetCount(animalData.id) >= 2) return;
 
         if (conditions != null && !conditions.CanAppear()) return;
 
@@ -52,8 +56,9 @@ public class AnimalSpawner : MonoBehaviour
         if (animalData.prefab != null)
         {
             GameObject go = Instantiate(animalData.prefab, spawnPoint.position, spawnPoint.rotation, animalsParent);
+            spawnedAnimalIDs.Add(animalData.id);
 
-            if (go.TryGetComponent<IAnimal>(out var animal))
+            if (go.TryGetComponent<Animal>(out var animal))
             {
                 if (waypointPath != null && waypointPath.waypoints.Count > 0)
                 {
@@ -69,7 +74,14 @@ public class AnimalSpawner : MonoBehaviour
                 }
 
                 animal.SpawnAsVisitor();
+                animal.BecameResident += () => UnregisterAnimal(animalData.id);
+                animal.LeftGarden += () => UnregisterAnimal(animalData.id);
             }
         }
+    }
+
+    private void UnregisterAnimal(string id)
+    {
+        spawnedAnimalIDs.Remove(id);
     }
 }

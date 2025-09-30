@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using System;
 
-public class Rabbit : MonoBehaviour, IAnimal
+public class Animal : MonoBehaviour     
 {
     [SerializeField] private AnimalController controller;
     [SerializeField] private AnimalWander wanderBehaviour;
@@ -20,6 +21,9 @@ public class Rabbit : MonoBehaviour, IAnimal
     public bool IsVisiting => !IsResident;
     private bool visitingGarden = false;
 
+    public event Action BecameResident;
+    public event Action LeftGarden;
+
     private void Awake()
     {
         if (eatingBehaviour != null)
@@ -29,7 +33,7 @@ public class Rabbit : MonoBehaviour, IAnimal
         }
         agent = GetComponent<NavMeshAgent>();
 
-        agent.avoidancePriority += Random.Range(-10, 10);
+        agent.avoidancePriority += UnityEngine.Random.Range(-10, 10);
     }
 
     private void Update()
@@ -127,12 +131,20 @@ public class Rabbit : MonoBehaviour, IAnimal
     {
         if (IsResident)
             return;
+
         IsResident = true;
         controller.SetBehaviour(wanderBehaviour);
         wanderBehaviour.SetZone(NavZone.Garden);
 
-        if (TryGetComponent<ObjectIdentity>(out var identity))
-            GameManager.Instance.Garden.AddObject(identity.Id, gameObject);
+        GameManager.Instance.Garden.AddObject(data.id, gameObject);
+
+        BecameResident?.Invoke();
+    }
+
+    public void LeaveGarden()
+    {
+        LeftGarden?.Invoke();
+        Destroy(gameObject);
     }
 
     public bool CheckResidenceCondition()

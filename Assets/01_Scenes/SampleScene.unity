@@ -1473,7 +1473,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
->>>>>>> Stashed changes
 --- !u!1 &636711914
 GameObject:
   m_ObjectHideFlags: 0
@@ -2359,7 +2358,6 @@ MonoBehaviour:
   leftPage: {fileID: 1227754147}
   rightPage: {fileID: 2069553435}
   backButton: {fileID: 1796693749}
->>>>>>> Stashed changes
 --- !u!1 &1096606513
 GameObject:
   m_ObjectHideFlags: 0

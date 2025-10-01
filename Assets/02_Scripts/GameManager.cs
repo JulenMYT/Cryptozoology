@@ -33,4 +33,16 @@ public class GameManager : MonoBehaviour
     [Header("Input")]
     [SerializeField] private InputManager inputManager;
     public InputManager Input => inputManager;
+<<<<<<< Updated upstream
+=======
+
+    [Header("Encyclopedia")]
+    [SerializeField] private EncyclopediaManager encyclopediaManager;
+    public EncyclopediaManager Encyclopedia => encyclopediaManager;
+
+    [Header("Day/Night Cycle")]
+    [SerializeField] private DayNightCycleManager dayNightCycle;
+    public DayNightCycleManager DayNight => dayNightCycle;
+
+>>>>>>> Stashed changes
 }

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class ItemSlotButton : MonoBehaviour
+public class UIBuildingSlotButton : MonoBehaviour
 {
     [SerializeField] private Image iconImage;
     [SerializeField] private Button button;

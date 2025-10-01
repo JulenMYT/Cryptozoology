@@ -22,10 +22,7 @@ public class AnimalSpawner : MonoBehaviour
         database = Resources.Load<ItemDatabase>(DatabasePath);
         if (database != null)
         {
-            animals = database.GetItemsByCategory(ItemCategory.Animal)
-                .Select(item => item as AnimalDataSO)
-                .Where(animal => animal != null)
-                .ToList();
+            animals = database.GetItemsByCategory<AnimalDataSO>(ItemCategory.Animal).ToList();
         }
     }
 
@@ -43,11 +40,11 @@ public class AnimalSpawner : MonoBehaviour
     {
         if (!CanSpawn()) return;
 
-        AnimalDataSO animalData = animals[UnityEngine.Random.Range(0, animals.Count)];
+        AnimalDataSO animalData = animals[Random.Range(0, animals.Count)];
 
         if (!CanSpawnAnimal(animalData)) return;
 
-        Transform spawnPoint = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
+        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
         SpawnAnimal(animalData, spawnPoint);
     }
 
@@ -62,6 +59,9 @@ public class AnimalSpawner : MonoBehaviour
         if (GameManager.Instance.Garden.GetCount(animalData.id) >= 2) return false;
         if (animalData.conditions != null && !animalData.conditions.CanAppear()) return false;
         if (animalData.prefab == null) return false;
+        float currentHour = GameManager.Instance.DayNight.GetHour();
+        if (animalData.ShouldSleep(currentHour)) return false;
+        if (animalData.ShouldSleep(currentHour + 2f)) return false;
 
         return true;
     }

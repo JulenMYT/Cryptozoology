@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ItemUIManager : MonoBehaviour
+public class UIBuildingManager : MonoBehaviour
 {
     [SerializeField] private ItemTypeButton buttonPrefab;
     [SerializeField] private Transform buttonContainer;
-    [SerializeField] private ItemSlotButton itemSlotPrefab;
+    [SerializeField] private UIBuildingSlotButton itemSlotPrefab;
     [SerializeField] private Transform itemListContainer;
     [SerializeField] private CategoryData[] categories;
     [SerializeField] private Button removeModeButton;
@@ -57,7 +57,7 @@ public class ItemUIManager : MonoBehaviour
     {
         foreach (Transform child in itemListContainer)
         {
-            if (child.TryGetComponent<ItemSlotButton>(out var slot))
+            if (child.TryGetComponent<UIBuildingSlotButton>(out var slot))
             {
                 slot.OnItemClicked -= HandleItemSelected;
             }

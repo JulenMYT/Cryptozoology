@@ -17,9 +17,9 @@ public class ItemDatabase : ScriptableObject
         return null;
     }
 
-    public IEnumerable<ObjectData> GetItemsByCategory(ItemCategory category)
+    public IEnumerable<T> GetItemsByCategory<T>(ItemCategory category) where T : ObjectData
     {
-        return items.Where(item => item.category == category);
+        return items.Where(item => item.category == category).OfType<T>();
     }
 }
     

@@ -50,6 +50,13 @@ public class GardenState : MonoBehaviour
         return objectCounts.ContainsKey(id) ? objectCounts[id] : 0;
     }
 
+    public GameObject GetObject(string id)
+    {
+        if (objectRefs.ContainsKey(id) && objectRefs[id].Count > 0)
+            return objectRefs[id][0];
+        return null;
+    }
+
     public Dictionary<string, int> GetAllCounts()
     {
         return new Dictionary<string, int>(objectCounts);

@@ -9,7 +9,7 @@ public class GridPlacementManager : MonoBehaviour
     [SerializeField] private PlacementCursor cursor;
     [SerializeField] private int gridWidth = 10;
     [SerializeField] private int gridHeight = 10;
-    [SerializeField] private ItemUIManager itemUIManager;
+    [SerializeField] private UIBuildingManager itemUIManager;
 
     private ObjectData selectedItem;
     private GameObject previewObject;
@@ -203,7 +203,7 @@ public class GridPlacementManager : MonoBehaviour
 
             case ItemCategory.Animal:
                 if (obj.TryGetComponent<Animal>(out var animal))
-                    animal.SpawnAsVisitor();
+                    animal.Initialize();
                 break;
 
             case ItemCategory.Production:

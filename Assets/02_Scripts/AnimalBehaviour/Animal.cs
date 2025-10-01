@@ -10,9 +10,7 @@ public class Animal : MonoBehaviour, IEdible
     [SerializeField] private AnimalEating eatingBehaviour;
     [SerializeField] private AnimalPatrol patrolBehaviour;
     [SerializeField] private AnimalLeave leaveBehaviour;
-
-    [SerializeField] private float leaveDelay;
-    private float leaveTimer = 0f;
+    [SerializeField] private AnimalSleep sleepBehaviour;
 
     private const float foodCheckInterval = 0.5f;
     private float foodCheckTimer = 0f;
@@ -53,13 +51,27 @@ public class Animal : MonoBehaviour, IEdible
             if (!visitingGarden) HandlePotentialVisitor();
             else HandleNonResidentBehavior();
         }
+        else
+        {
+            if (data.ShouldSleep() && !sleepBehaviour.IsActive())
+            {
+                var houseObj = GameManager.Instance.Garden.GetObject(data.houseID);
+                if (houseObj != null)
+                {
+                    sleepBehaviour.SetHouse(houseObj.transform);
+                }
+                controller.SetBehaviour(sleepBehaviour);
+            }
+            else if (!data.ShouldSleep() && sleepBehaviour.IsActive())
+            {
+                controller.SetBehaviour(wanderBehaviour);
+            }
+        }
     }
 
     private void HandlePotentialVisitor()
     {
-        leaveTimer += Time.deltaTime;
-
-        if (leaveTimer >= leaveDelay)
+        if (data.ShouldSleep())
         {
             StartLeave();
             return;
@@ -77,9 +89,7 @@ public class Animal : MonoBehaviour, IEdible
             return;
         }
 
-        leaveTimer += Time.deltaTime;
-
-        if (leaveTimer >= leaveDelay && !eatingBehaviour.IsActive())
+        if (data.ShouldSleep() && !eatingBehaviour.IsActive())
         {
             StartLeave();
             return;
@@ -105,7 +115,6 @@ public class Animal : MonoBehaviour, IEdible
 
     private void StartLeave()
     {
-        leaveTimer = 0f;    
         controller.SetBehaviour(leaveBehaviour);
         leaveBehaviour.FinishedLeaving -= LeaveGarden;
         leaveBehaviour.FinishedLeaving += LeaveGarden;
@@ -145,6 +154,7 @@ public class Animal : MonoBehaviour, IEdible
         controller.SetBehaviour(wanderBehaviour);
         wanderBehaviour.SetZone(NavZone.Garden);
         NavMeshZoneManager.SetAgentZone(agent, NavZone.Garden);
+        UnlockSection(1);
     }
 
     public void SpawnAsVisitor()
@@ -179,6 +189,7 @@ public class Animal : MonoBehaviour, IEdible
         GameManager.Instance.Garden.AddObject(data.id, gameObject);
 
         BecameResident?.Invoke();
+        UnlockSection(1);
     }
 
     public void LeaveGarden()
@@ -229,5 +240,10 @@ public class Animal : MonoBehaviour, IEdible
     public string GetId()
     {
         return data.id;
+    }
+
+    private void UnlockSection(int level)
+    {
+        GameManager.Instance.Encyclopedia.UnlockSection(data.id, level);
     }
 }

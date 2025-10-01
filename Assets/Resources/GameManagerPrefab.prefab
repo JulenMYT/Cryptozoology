@@ -1,5 +1,50 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1009880616175137224
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 183643715267180185}
+  - component: {fileID: 7455774637543200657}
+  m_Layer: 0
+  m_Name: Encyclopedia
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &183643715267180185
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1009880616175137224}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5709085614370916187}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7455774637543200657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1009880616175137224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2daa538e4dcd24699a4493ee5eefdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serializedProgress: []
 --- !u!1 &1211804173706866393
 GameObject:
   m_ObjectHideFlags: 0
@@ -44,6 +89,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a987bdf6589459428da937f1d678edd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &3065679614224968889
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3333685982944589095}
+  - component: {fileID: 1207330836575948810}
+  m_Layer: 0
+  m_Name: DayNightCycle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3333685982944589095
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3065679614224968889}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5709085614370916187}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1207330836575948810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3065679614224968889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44da47d37e4d9e24e9279ef2e8fdeeba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dayLengthInSeconds: 960
 --- !u!1 &3801717325812266565
 GameObject:
   m_ObjectHideFlags: 0
@@ -76,6 +166,8 @@ Transform:
   m_Children:
   - {fileID: 1372126723245657548}
   - {fileID: 5713504861435352612}
+  - {fileID: 183643715267180185}
+  - {fileID: 3333685982944589095}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7166619480400391815
@@ -92,6 +184,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gardenState: {fileID: 5555088874972336479}
   inputManager: {fileID: 5519988014798066001}
+  encyclopediaManager: {fileID: 7455774637543200657}
+  dayNightCycle: {fileID: 1207330836575948810}
 --- !u!1 &7741808584784697865
 GameObject:
   m_ObjectHideFlags: 0

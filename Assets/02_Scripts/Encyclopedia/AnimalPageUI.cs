@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class AnimalPageUI : MonoBehaviour
 {
@@ -9,9 +10,9 @@ public class AnimalPageUI : MonoBehaviour
     public void Setup(string id)
     {
         animalId = id;
-        int unlocked = GameManager.Instance.Encyclopedia.GetUnlockedSections(animalId);
+        List<int> unlocked = GameManager.Instance.Encyclopedia.GetUnlockedSections(animalId);
 
         for (int i = 0; i < sections.Length; i++)
-            sections[i].SetActive(i < unlocked);
+            sections[i].SetActive(unlocked.Contains(i+1));
     }
 }

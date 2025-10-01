@@ -5,8 +5,7 @@ public class AnimalDataSO : ObjectData
 {
     [Header("Plant Growth")]
     public AnimalConditions conditions;
-<<<<<<< Updated upstream
-=======
+
     public GameObject encyclopediaPrefab;
     public string houseID;
     public float wakeUpTime;
@@ -36,5 +35,4 @@ public class AnimalDataSO : ObjectData
             return time >= sleepTime && time < wakeUpTime;
         }
     }
->>>>>>> Stashed changes
 }

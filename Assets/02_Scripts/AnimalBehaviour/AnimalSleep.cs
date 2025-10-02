@@ -6,24 +6,30 @@ using System.Collections;
 public class AnimalSleep : MonoBehaviour, IAnimalBehaviour
 {
     [SerializeField] private NavMeshAgent agent;
-    [SerializeField] private Transform parentTransform;
+    [SerializeField] private Animal parent;
     [SerializeField] private float stoppingDistance = 1f;
-
-    private Transform house;
-    private bool active = false;
-    private bool reachedHouse = false;
-
-    private Vector3 originalScale;
-    [SerializeField] private Vector3 sleepScale = new Vector3(0.5f, 0.5f, 0.5f);
+    private Vector3 sleepScale = Vector3.zero;
     [SerializeField] private float shrinkDuration = 2f;
 
-    private bool isShrinking = false;
+    private House house;
+    private bool active;
+    private bool reachedHouse;
+    private bool isShrinking;
+    private Vector3 originalScale = Vector3.one;
 
     public bool IsActive() => active;
 
-    public void SetHouse(Transform houseTransform)
+    public event Action EnterHouse;
+    public event Action ExitHouse;
+
+    private void Awake()
     {
-        house = houseTransform;
+        parent = GetComponentInParent<Animal>();
+    }
+
+    public void SetHouse(GameObject houseObject)
+    {
+        house = houseObject.GetComponent<House>();
     }
 
     public void Activate()
@@ -31,12 +37,9 @@ public class AnimalSleep : MonoBehaviour, IAnimalBehaviour
         active = true;
         reachedHouse = false;
         isShrinking = false;
-        originalScale = parentTransform.localScale;
 
         if (house != null)
-        {
-            agent.SetDestination(house.position);
-        }
+            agent.SetDestination(house.transform.position);
         else
         {
             reachedHouse = true;
@@ -54,54 +57,81 @@ public class AnimalSleep : MonoBehaviour, IAnimalBehaviour
 
     private void Update()
     {
-        if (!active) return;
+        if (!active || reachedHouse) return;
 
-        if (house != null && !reachedHouse)
+        if (house)
+            HandleHouseApproach();
+        else
         {
-            float distance = Vector3.Distance(transform.position, house.position);
+            reachedHouse = true;
+            EnterSleep();
+        }
+    }
 
-            if (distance <= stoppingDistance && !isShrinking)
-            {
-                isShrinking = true;
-                StartCoroutine(ShrinkOverTime(shrinkDuration));
-            }
+    private void HandleHouseApproach()
+    {
+        float distance = Vector3.Distance(transform.position, house.transform.position);
 
-            if (!agent.pathPending && distance <= agent.stoppingDistance)
-            {
-                reachedHouse = true;
-                isShrinking = false;
-                agent.ResetPath();
-            }
+        if (distance <= stoppingDistance && !isShrinking)
+        {
+            isShrinking = true;
+            StartCoroutine(ShrinkOverTime(shrinkDuration));
+        }
+
+        if (!agent.pathPending && distance <= agent.stoppingDistance)
+        {
+            house.AddAnimal(this);
+            reachedHouse = true;
+            isShrinking = false;
+            agent.ResetPath();
+            EnterHouse?.Invoke();
         }
     }
 
     private IEnumerator ShrinkOverTime(float duration)
     {
-        Vector3 startScale = parentTransform.localScale;
+        Vector3 startScale = originalScale;
         Vector3 endScale = sleepScale;
         float timer = 0f;
 
         while (timer < duration)
         {
             timer += Time.deltaTime;
-            parentTransform.localScale = Vector3.Lerp(startScale, endScale, timer / duration);
+            parent.transform.localScale = Vector3.Lerp(startScale, endScale, timer / duration);
             yield return null;
         }
 
-        parentTransform.localScale = endScale;
+        parent.transform.localScale = endScale;
     }
 
+    public void HouseDone()
+    {
+        ResetSize();
+        ExitHouse?.Invoke();
+    }
+
+    private void ResetSize()
+    {
+        parent.transform.localScale = originalScale;
+        isShrinking = false;
+    }
 
     private void EnterSleep()
     {
-        if (house != null)
-        {
-            parentTransform.localScale = sleepScale;
-        }
+        EnterHouse?.Invoke();
     }
 
     private void ExitSleep()
     {
-        parentTransform.localScale = originalScale;
+        if (isShrinking)
+            StopAllCoroutines();
+
+        ResetSize();
+
+        if (house != null)
+        {
+            house.RemoveAnimal(this);
+            ExitHouse?.Invoke();
+        }
     }
 }

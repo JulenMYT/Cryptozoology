@@ -9,6 +9,7 @@ public class SpeedAnimator : MonoBehaviour
     void Update()
     {
         float speed = agent.velocity.magnitude;
-        animator.SetFloat("Speed", speed);
+        if (animator)
+            animator.SetFloat("Speed", speed);
     }
 }

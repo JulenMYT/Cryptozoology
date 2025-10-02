@@ -18,3 +18,4 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 17abdb883635b7c4d96cdc7633f0376d, type: 3}
   prefab: {fileID: 6296513424476773305, guid: 7c7e1beb72ccce049b67328405d69a44, type: 3}
   gridSize: {x: 2, y: 1}
+  isUnique: 1

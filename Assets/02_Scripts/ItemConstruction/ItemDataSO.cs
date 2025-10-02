@@ -18,4 +18,5 @@ public class ObjectData : ScriptableObject
     public Sprite icon;
     public GameObject prefab;
     public Vector2Int gridSize = Vector2Int.one;
+    public bool isUnique = false;
 }

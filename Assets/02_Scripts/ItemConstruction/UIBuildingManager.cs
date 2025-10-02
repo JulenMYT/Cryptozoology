@@ -67,6 +67,11 @@ public class UIBuildingManager : MonoBehaviour
 
     private void HandleItemSelected(ObjectData item)
     {
+        if (GameManager.Instance.Garden.GetCount(item.id) >= 1 && item.isUnique)
+        {
+            Debug.Log("Max count reached for item: " + item.name);
+            return;
+        }
         OnItemSelected?.Invoke(item);
     }
 }

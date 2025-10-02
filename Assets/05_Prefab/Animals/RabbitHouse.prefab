@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6322575091580611716}
+  - component: {fileID: 8092735279696558790}
   m_Layer: 0
   m_Name: RabbitHouse
   m_TagString: Untagged
@@ -32,6 +33,18 @@ Transform:
   - {fileID: 7713932751214714186}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8092735279696558790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6296513424476773305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f0a62935360c2a4187bfaa89610cee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7820462866751486625
 PrefabInstance:
   m_ObjectHideFlags: 0

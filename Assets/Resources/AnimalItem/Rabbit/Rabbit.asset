@@ -18,8 +18,9 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 17abdb883635b7c4d96cdc7633f0376d, type: 3}
   prefab: {fileID: 1678518594669431386, guid: 00909ef9b83df194b990bf22625150a7, type: 3}
   gridSize: {x: 0, y: 0}
+  isUnique: 0
   conditions: {fileID: 11400000, guid: e0cb47c758fc481468fddf1b1bb2e790, type: 2}
   encyclopediaPrefab: {fileID: 5217614176957478505, guid: ebe8f4a3f4e064e47a892e439fd25b9b, type: 3}
   houseID: 7
   wakeUpTime: 6
-  sleepTime: 18
+  sleepTime: 22

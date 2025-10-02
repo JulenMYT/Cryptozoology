@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93682ac6acdf24143af6cbe9013b0fa1, type: 3}
+  m_Name: Wolf
+  m_EditorClassIdentifier: 
+  id: 8
+  displayName: Wolf
+  category: 1
+  icon: {fileID: 21300000, guid: f12955a96e0323a4e92e5e65d466b4e0, type: 3}
+  prefab: {fileID: 1678518594669431386, guid: 20b22904063ec1a41ad371c44df9a7c8, type: 3}
+  gridSize: {x: 0, y: 0}
+  isUnique: 0
+  conditions: {fileID: 11400000, guid: 19c02780ea22e814b9247b5bd09a313b, type: 2}
+  encyclopediaPrefab: {fileID: 5217614176957478505, guid: 6bc8af0b42b692c4faa092874696825c, type: 3}
+  houseID: 9
+  wakeUpTime: 16
+  sleepTime: 8

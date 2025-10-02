@@ -3,9 +3,17 @@ using UnityEngine;
 public class DayNightCycleManager : MonoBehaviour
 {
     [SerializeField] private float dayLengthInSeconds = 300f;
+    [SerializeField] private float initialTimeOfDay = 0f;
+    
     private float timeOfDay;
 
     public float TimeOfDay => timeOfDay;
+    public float DayLengthInSeconds => dayLengthInSeconds;
+
+    private void Start()
+    {
+        timeOfDay = Mathf.Clamp01(initialTimeOfDay);
+    }
 
     private void Update()
     {

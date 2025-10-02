@@ -134,6 +134,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dayLengthInSeconds: 960
+  initialTimeOfDay: 0.3
 --- !u!1 &3801717325812266565
 GameObject:
   m_ObjectHideFlags: 0

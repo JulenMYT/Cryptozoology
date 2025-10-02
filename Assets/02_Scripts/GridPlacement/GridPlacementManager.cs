@@ -217,6 +217,8 @@ public class GridPlacementManager : MonoBehaviour
         }
 
         GameManager.Instance.Garden.AddObject(selectedItem.id, obj);
+        if (selectedItem.isUnique)
+            CancelPlacement();
     }
 
     private void CancelPlacement()

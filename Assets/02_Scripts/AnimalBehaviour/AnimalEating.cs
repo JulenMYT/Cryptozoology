@@ -7,6 +7,8 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
 {
     [SerializeField] private NavMeshAgent agent;
     [SerializeField] private Animator animator;
+    [SerializeField] private float wanderSpeed = 8f;
+    [SerializeField] private float chaseSpeed = 14f;
 
     private IEdible targetFood;
     private bool active;
@@ -28,6 +30,7 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
         if (targetFood == null) return;
         active = true;
         MoveToTarget();
+        agent.speed = chaseSpeed;
     }
 
     public void Deactivate()
@@ -37,6 +40,7 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
         eating = false;
         StopAllCoroutines();
         agent.ResetPath();
+        agent.speed = wanderSpeed;
     }
 
     private void Update()

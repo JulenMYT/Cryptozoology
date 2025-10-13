@@ -28,8 +28,6 @@ public class Animal : MonoBehaviour, IEdible
     public bool IsResident { get; private set; }
     public bool IsVisiting => !IsResident;
 
-    private AnimalGroup group;
-
     public event Action BecameResident;
     public event Action LeftGarden;
 
@@ -157,7 +155,7 @@ public class Animal : MonoBehaviour, IEdible
         leaveBehaviour.FinishedLeaving += LeaveGarden;
     }
 
-    public void Initialize()
+    public void Place()
     {
         IsResident = true;
         isActive = true;
@@ -165,6 +163,7 @@ public class Animal : MonoBehaviour, IEdible
         wanderBehaviour.SetZone(NavZone.Garden);
         NavMeshZoneManager.SetAgentZone(agent, NavZone.Garden);
         UnlockSection(1);
+        Register();
     }
 
     public void SpawnAsVisitor()
@@ -194,9 +193,10 @@ public class Animal : MonoBehaviour, IEdible
         IsResident = true;
         controller.SetBehaviour(wanderBehaviour);
         wanderBehaviour.SetZone(NavZone.Garden);
-        GameManager.Instance.Garden.AddObject(data.id, gameObject);
+        GameManager.Instance.Garden.AddObject(data.displayName, gameObject);
         BecameResident?.Invoke();
         UnlockSection(1);
+        Register();
     }
 
     public void LeaveGarden()
@@ -228,11 +228,21 @@ public class Animal : MonoBehaviour, IEdible
 
     public void Eat()
     {
-        GameManager.Instance.Garden.RemoveObject(data.id, gameObject);
+        GameManager.Instance.Garden.RemoveObject(data.displayName, gameObject);
         Destroy(gameObject);
     }
 
-    public string GetId() => data.id;
+    public string GetId() => data.displayName;
 
-    private void UnlockSection(int level) => GameManager.Instance.Encyclopedia.UnlockSection(data.id, level);
+    private void UnlockSection(int level) => GameManager.Instance.Encyclopedia.UnlockSection(data.displayName, level);
+
+    private void Register()
+    {
+        GameManager.Instance.Animals.RegisterAnimal(data, 1);
+    }
+
+    private void FixedUpdate()
+    {
+        GameManager.Instance.Animals.RemoveAnimal(data, 0);
+    }
 }

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 781665159170706052}
+  - component: {fileID: 810905308376460788}
   m_Layer: 0
   m_Name: Hive
   m_TagString: Untagged
@@ -32,6 +33,25 @@ Transform:
   - {fileID: 5922529189577537764}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &810905308376460788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4510741749742937985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edeb94194e2ff5b49a6d49be64fd34c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Cell: {x: 0, y: 0, z: 0}
+  Name: 
+  ObjectData: {fileID: 0}
+  PlaceableObjectData:
+    ID: 
+    position: {x: 0, y: 0, z: 0}
+    name: 
 --- !u!1001 &6177730970693394191
 PrefabInstance:
   m_ObjectHideFlags: 0

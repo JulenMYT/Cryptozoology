@@ -9,6 +9,8 @@ public class AnimalDataSO : ObjectData
     public string houseID;
     public float wakeUpTime;
     public float sleepTime;
+    public float foodConsumptionPerDay;
+    public float hungerDecayRate;
 
     public bool ShouldSleep()
     {

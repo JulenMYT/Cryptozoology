@@ -12,7 +12,6 @@ public enum ItemCategory
 [CreateAssetMenu(menuName = "Game/Item")]
 public class ObjectData : ScriptableObject
 {
-    public string id;
     public string displayName;
     public ItemCategory category;
     public Sprite icon;

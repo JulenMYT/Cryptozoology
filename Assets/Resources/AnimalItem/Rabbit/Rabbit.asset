@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93682ac6acdf24143af6cbe9013b0fa1, type: 3}
   m_Name: Rabbit
   m_EditorClassIdentifier: 
-  id: 6
   displayName: Rabbit
   category: 1
   icon: {fileID: 21300000, guid: 17abdb883635b7c4d96cdc7633f0376d, type: 3}
@@ -21,6 +20,8 @@ MonoBehaviour:
   isUnique: 0
   conditions: {fileID: 11400000, guid: e0cb47c758fc481468fddf1b1bb2e790, type: 2}
   encyclopediaPrefab: {fileID: 5217614176957478505, guid: ebe8f4a3f4e064e47a892e439fd25b9b, type: 3}
-  houseID: 7
+  houseID: RabbitHouse
   wakeUpTime: 6
   sleepTime: 22
+  foodConsumptionPerDay: 1
+  hungerDecayRate: 0.5

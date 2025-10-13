@@ -89,9 +89,9 @@ public class UIEncyclopediaManager : MonoBehaviour
         foreach (var animal in animals)
         {
             var icon = Instantiate(animalIconPrefab, gridParent);
-            spawnedIcons[animal.id] = icon;
-            bool unlocked = GameManager.Instance.Encyclopedia.IsSectionUnlocked(animal.id, 1);
-            icon.Setup(animal.id, unlocked ? animal.icon : unknownSprite);
+            spawnedIcons[animal.displayName] = icon;
+            bool unlocked = GameManager.Instance.Encyclopedia.IsSectionUnlocked(animal.displayName, 1);
+            icon.Setup(animal.displayName, unlocked ? animal.icon : unknownSprite);
             icon.OnButtonClicked += OnAnimalIconClicked;
         }
     }
@@ -105,15 +105,15 @@ public class UIEncyclopediaManager : MonoBehaviour
     {
         foreach (var animal in animals)
         {
-            if (!spawnedIcons.TryGetValue(animal.id, out var icon)) continue;
-            bool unlocked = GameManager.Instance.Encyclopedia.IsSectionUnlocked(animal.id, 1);
+            if (!spawnedIcons.TryGetValue(animal.displayName, out var icon)) continue;
+            bool unlocked = GameManager.Instance.Encyclopedia.IsSectionUnlocked(animal.displayName, 1);
             icon.UpdateIconImage(unlocked ? animal.icon : unknownSprite);
         }
     }
 
     private void OpenEncyclopediaPage(string animalId)
     {
-        int animalIndex = animals.FindIndex(a => a.id == animalId);
+        int animalIndex = animals.FindIndex(a => a.displayName == animalId);
         if (animalIndex == -1) return;
 
         SetCanvasVisible(encyclopediaCanvas, true);

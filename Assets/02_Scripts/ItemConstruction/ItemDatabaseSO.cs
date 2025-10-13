@@ -11,7 +11,7 @@ public class ItemDatabase : ScriptableObject
     {
         foreach (var item in items)
         {
-            if (item.id == id)
+            if (item.displayName == id)
                 return item;
         }
         return null;

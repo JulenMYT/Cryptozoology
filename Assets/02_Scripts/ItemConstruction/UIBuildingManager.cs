@@ -13,8 +13,6 @@ public class UIBuildingManager : MonoBehaviour
     [SerializeField] private Button removeModeButton;
 
     private Dictionary<ItemCategory, Sprite> categoryIcons;
-    public event Action<ObjectData> OnItemSelected;
-    public event Action OnRemoveModeSelected;
 
     private void Awake()
     {
@@ -24,7 +22,7 @@ public class UIBuildingManager : MonoBehaviour
 
         SetupCategoryButtons();
         if (removeModeButton != null)
-            removeModeButton.onClick.AddListener(() => OnRemoveModeSelected?.Invoke());
+            removeModeButton.onClick.AddListener(() => GameManager.Instance.BuildingSystem.SetRemoveMode());
     }
 
     private void SetupCategoryButtons()
@@ -67,11 +65,11 @@ public class UIBuildingManager : MonoBehaviour
 
     private void HandleItemSelected(ObjectData item)
     {
-        if (GameManager.Instance.Garden.GetCount(item.id) >= 1 && item.isUnique)
+        if (GameManager.Instance.Garden.GetCount(item.displayName) >= 1 && item.isUnique)
         {
             Debug.Log("Max count reached for item: " + item.name);
             return;
         }
-        OnItemSelected?.Invoke(item);
+        GameManager.Instance.BuildingSystem.SelectItem(item);
     }
 }

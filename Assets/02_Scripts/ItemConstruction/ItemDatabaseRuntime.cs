@@ -8,15 +8,15 @@ public static class ItemDatabaseRuntime
 
     private static string databasePath = "ItemDatabase";
 
-    public static void Initialize(ItemDatabase database)
+    private static void Initialize(ItemDatabase database)
     {
         lookupById = new Dictionary<string, ObjectData>();
         lookupByCategory = new Dictionary<ItemCategory, List<ObjectData>>();
 
         foreach (var item in database.items)
         {
-            if (!lookupById.ContainsKey(item.id))
-                lookupById.Add(item.id, item);
+            if (!lookupById.ContainsKey(item.displayName))
+                lookupById.Add(item.displayName, item);
 
             if (!lookupByCategory.ContainsKey(item.category))
                 lookupByCategory[item.category] = new List<ObjectData>();

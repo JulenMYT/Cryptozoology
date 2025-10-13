@@ -1,0 +1,6 @@
+{
+  "$type": "SaveData, Assembly-CSharp",
+  "placeableObjectDatas": {
+    "$type": "System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[PlaceableObjectSaveData, Assembly-CSharp]], mscorlib"
+  }
+}

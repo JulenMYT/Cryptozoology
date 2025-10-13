@@ -42,4 +42,19 @@ public class GameManager : MonoBehaviour
     [SerializeField] private DayNightCycleManager dayNightCycle;
     public DayNightCycleManager DayNight => dayNightCycle;
 
+    [Header("Game Mode")]
+    [SerializeField] private GameModeManager gameModeManager;
+    public GameModeManager GameModeManager => gameModeManager;
+
+    [Header("Animals")]
+    [SerializeField] private AnimalManager animalManager;
+    public AnimalManager Animals => animalManager;
+
+    [Header("Building System")]
+    [SerializeField] private BuildingSystem buildingSystem;     
+    public BuildingSystem BuildingSystem => buildingSystem;
+
+    [Header("Save System")]
+    [SerializeField] private SaveManager saveManager;
+    public SaveManager SaveManager => saveManager;
 }

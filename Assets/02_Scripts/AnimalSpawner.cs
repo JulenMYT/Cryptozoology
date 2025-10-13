@@ -55,8 +55,8 @@ public class AnimalSpawner : MonoBehaviour
 
     private bool CanSpawnAnimal(AnimalDataSO animalData)
     {
-        if (spawnedAnimalIDs.Contains(animalData.id)) return false;
-        if (GameManager.Instance.Garden.GetCount(animalData.id) >= 2) return false;
+        if (spawnedAnimalIDs.Contains(animalData.displayName)) return false;
+        if (GameManager.Instance.Garden.GetCount(animalData.displayName) >= 2) return false;
         if (animalData.conditions != null && !animalData.conditions.CanAppear()) return false;
         if (animalData.prefab == null) return false;
         float currentHour = GameManager.Instance.DayNight.GetHour();
@@ -69,7 +69,7 @@ public class AnimalSpawner : MonoBehaviour
     private void SpawnAnimal(AnimalDataSO animalData, Transform spawnPoint)
     {
         GameObject go = Instantiate(animalData.prefab, spawnPoint.position, spawnPoint.rotation, animalsParent);
-        spawnedAnimalIDs.Add(animalData.id);
+        spawnedAnimalIDs.Add(animalData.displayName);
 
         if (!go.TryGetComponent<Animal>(out var animal)) return;
 
@@ -77,8 +77,8 @@ public class AnimalSpawner : MonoBehaviour
         SetupLeave(go, spawnPoint);
 
         animal.SpawnAsVisitor();
-        animal.BecameResident += () => UnregisterAnimal(animalData.id);
-        animal.LeftGarden += () => UnregisterAnimal(animalData.id);
+        animal.BecameResident += () => UnregisterAnimal(animalData.displayName);
+        animal.LeftGarden += () => UnregisterAnimal(animalData.displayName);
     }
 
     private void SetupPatrol(GameObject go)

@@ -1,18 +1,23 @@
 using System;
 using System.Collections.Generic;
+using NUnit.Framework.Constraints;
 using UnityEngine;
 
 public class AnimalManager : MonoBehaviour
 {
-    private Dictionary<string, AnimalGroup> groups = new Dictionary<string, AnimalGroup>();
+    [SerializeField] private float tickInterval = 2f;
+    [SerializeField] private List<AnimalGroup> animalGroups = new();
+    private Dictionary<string, AnimalGroup> groups = new();
+    private float tickTimer = 0f;
 
-    public AnimalGroup RegisterAnimal(string speciesName, int initialSize = 1)
+    public AnimalGroup RegisterAnimal(AnimalDataSO animalData, int initialSize = 1)
     {
-        if (!groups.TryGetValue(speciesName, out AnimalGroup group))
+        if (!groups.TryGetValue(animalData.displayName, out AnimalGroup group))
         {
-            group = new AnimalGroup(speciesName, initialSize);
-            groups.Add(speciesName, group);
-            Debug.Log($"Created new group for {speciesName}");
+            group = new AnimalGroup(animalData, initialSize);
+            groups.Add(animalData.displayName, group);
+            animalGroups.Add(group);
+            Debug.Log($"Created new group for {animalData}");
         }
         else
         {
@@ -22,15 +27,16 @@ public class AnimalManager : MonoBehaviour
         return group;
     }
 
-    public void RemoveAnimal(string speciesName, int amount = 1)
+    public void RemoveAnimal(AnimalDataSO animalData, int amount = 1)
     {
-        if (groups.TryGetValue(speciesName, out AnimalGroup group))
+        if (groups.TryGetValue(animalData.displayName, out AnimalGroup group))
         {
             group.GroupSize -= amount;
             if (group.GroupSize <= 0)
             {
-                groups.Remove(speciesName);
-                Debug.Log($"Group {speciesName} removed because it became empty");
+                animalGroups.Remove(group);
+                groups.Remove(animalData.displayName);
+                Debug.Log($"Group {animalData} removed because it became empty");
             }
         }
     }
@@ -43,10 +49,15 @@ public class AnimalManager : MonoBehaviour
 
     private void Update()
     {
-        float dayLength = 60f;
+        tickTimer += Time.deltaTime;
+        if (tickTimer < tickInterval) return;
+        tickTimer = 0f;
+
+        float dayLength = GameManager.Instance.DayNight.DayLengthInSeconds;
+
         foreach (var group in groups.Values)
         {
-            group.UpdateGroup(Time.deltaTime, dayLength);
+            group.UpdateGroup(tickInterval, dayLength);
         }
     }
 }
@@ -54,21 +65,44 @@ public class AnimalManager : MonoBehaviour
 [Serializable]
 public class AnimalGroup
 {
-    public string SpeciesName;
+    private const float maxHunger = 1f;
+    public AnimalDataSO Data;
     public int GroupSize;
-
     public float Hunger;
+    private House house;
 
-    public AnimalGroup(string speciesName, int initialSize)
+    public AnimalGroup(AnimalDataSO speciesName, int initialSize)
     {
-        SpeciesName = speciesName;
+        Data = speciesName;
         GroupSize = initialSize;
-        Hunger = 1f;
+        Hunger = maxHunger;
     }
 
-    public void UpdateGroup(float deltaTime, float dayLength, float hungerDecayPerDay = 0.1f)
+    public void UpdateGroup(float deltaTime, float dayLength)
     {
-        Hunger = Math.Clamp(Hunger - hungerDecayPerDay * (deltaTime / dayLength), 0f, 1f);
+        if (GroupSize <= 0) return;
+
+        if (!house)
+            SearchForHouse();
+
+        float foodNeeded = Data.foodConsumptionPerDay * GroupSize * (deltaTime / dayLength);
+
+        if (house && house.HasFood())
+        {
+            Hunger = Mathf.Min(maxHunger, Hunger + Data.hungerDecayRate * (deltaTime / dayLength));
+            house.ConsumeFood(foodNeeded);
+        }
+        else
+        {
+            Hunger -= Data.hungerDecayRate * (deltaTime / dayLength);
+        }
+    }
+
+    private void SearchForHouse()
+    {
+        var obj = GameManager.Instance.Garden.GetObject(Data.houseID);
+        if (obj != null)
+            house = obj.GetComponent<House>();
     }
 }
 

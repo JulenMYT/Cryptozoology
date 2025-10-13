@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   appearingCondition:
     placingConditions:
-    - id: 6
+    - id: Rabbit
       minCount: 1
     eatingConditions: []
   visitCondition:
     placingConditions:
-    - id: 6
+    - id: Rabbit
       minCount: 1
     eatingConditions: []
   residenceCondition:
     placingConditions: []
     eatingConditions:
-    - id: 6
+    - id: Rabbit
       minCount: 1

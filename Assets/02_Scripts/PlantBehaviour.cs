@@ -1,31 +1,63 @@
+using Unity.Collections;
 using UnityEngine;
 
-public class PlantBehaviour : MonoBehaviour, IEdible
+public class PlantBehaviour : PlaceableObject, IEdible
 {
-    private PlantDataSO data;
+    private PlantDataSO plantData;
     private int stage;
     private float timer;
     private float stageDuration;
     private int portionsLeft;
+    private bool isMature = false;
 
     private PlantVisual visual;
 
-    public void Initialize(PlantDataSO plantData)
+    [ReadOnly]
+    public PlantSaveData PlantSaveData = new();
+
+    public override void Initialize(ObjectData data)
     {
-        data = plantData;
+        PlantSaveData.ID = SaveData.GenerateID();
+        PlantSaveData.name = data.displayName;  
+
+        PlantDataSO plantData = data as PlantDataSO;
+        this.plantData = plantData;
         stage = 0;
         timer = 0f;
-        portionsLeft = data.portions;
-        stageDuration = data.totalGrowthTime / Mathf.Max(data.growthSprites.Length - 1, 1);
+        portionsLeft = this.plantData.portions;
+        stageDuration = this.plantData.totalGrowthTime / Mathf.Max(this.plantData.growthSprites.Length - 1, 1);
 
         visual = GetComponentInChildren<PlantVisual>();
-        if (visual != null && data.growthSprites.Length > 0)
-            visual.SetSprite(data.growthSprites[0]);
+        if (visual != null && this.plantData.growthSprites.Length > 0)
+            visual.SetSprite(this.plantData.growthSprites[0]);
+    }
+
+    public override void Initialize(ObjectData objectData, PlaceableObjectSaveData saveData)
+    {
+        PlantDataSO plantData = objectData as PlantDataSO;
+        this.plantData = plantData;
+        stageDuration = this.plantData.totalGrowthTime / Mathf.Max(this.plantData.growthSprites.Length - 1, 1);
+
+        PlantSaveData = saveData as PlantSaveData;
+
+        stage = PlantSaveData.stage;
+        timer = PlantSaveData.timer;
+        portionsLeft = PlantSaveData.portionsLeft;
+        isMature = PlantSaveData.isMature;
+
+        visual = GetComponentInChildren<PlantVisual>();
+        if (visual != null && this.plantData.growthSprites.Length > 0)
+            visual.SetSprite(this.plantData.growthSprites[stage]);
     }
 
     private void Update()
     {
-        if (data == null || stage >= data.growthSprites.Length - 1)
+        if (!Placed)
+        {
+            return;
+        }
+
+        if (plantData == null || isMature)
             return;
 
         timer += Time.deltaTime;
@@ -34,15 +66,11 @@ public class PlantBehaviour : MonoBehaviour, IEdible
             timer = 0f;
             stage++;
             if (visual != null)
-                visual.SetSprite(data.growthSprites[stage]);
+                visual.SetSprite(plantData.growthSprites[stage]);
 
-            if (stage == data.growthSprites.Length - 1 && !string.IsNullOrEmpty(data.matureId))
+            if (stage == plantData.growthSprites.Length - 1)
             {
-                TryGetComponent<ObjectIdentity>(out var identity);
-                if (identity != null)
-                    identity.Id = data.matureId;
-
-                GameManager.Instance.Garden.ReplaceObject(data.id, data.matureId, gameObject);
+                isMature = true;
             }
         }
     }
@@ -51,7 +79,7 @@ public class PlantBehaviour : MonoBehaviour, IEdible
 
     public bool CanBeEaten()
     {
-        return stage >= data.growthSprites.Length - 1 && portionsLeft > 0;
+        return isMature;
     }
 
     public void Eat()
@@ -65,6 +93,16 @@ public class PlantBehaviour : MonoBehaviour, IEdible
 
     public string GetId()
     {
-        return data != null ? data.matureId : string.Empty;
+        return plantData.name;
+    }
+
+    protected override void OnApplicationQuit()
+    {
+        PlantSaveData.position = transform.position;
+        PlantSaveData.stage = stage;
+        PlantSaveData.timer = timer;
+        PlantSaveData.portionsLeft = portionsLeft;
+        PlantSaveData.isMature = isMature;
+        GameManager.Instance.SaveManager.saveData.AddData(PlantSaveData);
     }
 }

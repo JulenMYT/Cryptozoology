@@ -1,6 +1,27 @@
 {
   "$type": "SaveData, Assembly-CSharp",
   "placeableObjectDatas": {
-    "$type": "System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[PlaceableObjectSaveData, Assembly-CSharp]], mscorlib"
+    "$type": "System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[PlaceableObjectSaveData, Assembly-CSharp]], mscorlib",
+    "c39d04a8-3151-49c9-9b51-54ee39217a06": {
+      "$type": "PlaceableObjectSaveData, Assembly-CSharp",
+      "position": {
+        "$type": "UnityEngine.Vector3, UnityEngine.CoreModule",
+        "x": -0.5,
+        "y": 0.0,
+        "z": -0.5,
+        "normalized": {
+          "$type": "UnityEngine.Vector3, UnityEngine.CoreModule",
+          "x": -0.707106769,
+          "y": 0.0,
+          "z": -0.707106769,
+          "magnitude": 1.0,
+          "sqrMagnitude": 0.99999994
+        },
+        "magnitude": 0.707106769,
+        "sqrMagnitude": 0.5
+      },
+      "name": "RabbitHouse",
+      "ID": "c39d04a8-3151-49c9-9b51-54ee39217a06"
+    }
   }
 }

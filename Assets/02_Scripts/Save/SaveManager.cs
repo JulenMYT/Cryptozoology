@@ -1,8 +1,11 @@
+using System;
 using UnityEngine;
 
 public class SaveManager : MonoBehaviour
 {
     public SaveData saveData;
+
+    public event Action OnSave;
 
     private void Awake()
     {
@@ -13,6 +16,13 @@ public class SaveManager : MonoBehaviour
     {
         saveData = SaveSystem.Load();
         LoadGame();
+    }
+
+    private void SaveGame()
+    {
+        saveData.ClearData();
+        OnSave?.Invoke();
+        SaveSystem.Save(saveData);
     }
 
     private void LoadGame()
@@ -64,12 +74,17 @@ public class SaveManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F5))
         {
+            SaveGame();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F9))
+        {
             SaveSystem.DeleteSave();
         }
     }
 
-    private void OnDisable()
+    private void OnApplicationQuit()
     {
-        SaveSystem.Save(saveData);
+        SaveGame();
     }
 }

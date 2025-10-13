@@ -28,11 +28,17 @@ public class PlaceableObject : MonoBehaviour
     public virtual void Place()
     {
         Placed = true;
+        GameManager.Instance.SaveManager.OnSave += Save;
     }
 
-    protected virtual void OnApplicationQuit()
+    protected virtual void Save()
     {
         PlaceableObjectData.position = transform.position;
         GameManager.Instance.SaveManager.saveData.AddData(PlaceableObjectData);
+    }
+
+    private void OnDisable()
+    {
+        GameManager.Instance.SaveManager.OnSave -= Save;
     }
 }

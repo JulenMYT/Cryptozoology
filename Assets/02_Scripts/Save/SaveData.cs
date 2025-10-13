@@ -21,10 +21,9 @@ public class SaveData
             placeableObjectDatas.Add(data.ID, data);
     }
 
-    public void RemoveData(PlaceableObjectSaveData data)
+    public void ClearData()
     {
-        if (placeableObjectDatas.ContainsKey(data.ID))
-            placeableObjectDatas.Remove(data.ID);
+        placeableObjectDatas.Clear();
     }
 
     [OnDeserialized]

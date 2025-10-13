@@ -96,7 +96,7 @@ public class PlantBehaviour : PlaceableObject, IEdible
         return plantData.name;
     }
 
-    protected override void OnApplicationQuit()
+    protected override void Save()
     {
         PlantSaveData.position = transform.position;
         PlantSaveData.stage = stage;

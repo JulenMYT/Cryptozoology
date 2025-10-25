@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 
 public class AnimalSpawner : MonoBehaviour
 {
@@ -8,11 +9,25 @@ public class AnimalSpawner : MonoBehaviour
     private static readonly string DatabasePath = "ItemDatabase";
     private ItemDatabase database;
 
-    [SerializeField] private List<Transform> spawnPoints = new();
-    [SerializeField] private WaypointPath waypointPath;
     [SerializeField] private Transform animalsParent;
     [SerializeField] private float spawnInterval = 10f;
     [SerializeField] private int maxAnimals = 5;
+    private ScenePoints _scenePoints;
+
+    private ScenePoints scenePoints
+    {
+        get
+        {
+            if (!_scenePoints)
+            {
+                _scenePoints = FindFirstObjectByType<ScenePoints>();
+                if (_scenePoints == null)
+                    Debug.LogError("No ScenePoints found in the scene!");
+            }
+            return _scenePoints;
+        }
+    }
+
 
     private float timer;
     private HashSet<string> spawnedAnimalIDs = new();
@@ -23,6 +38,11 @@ public class AnimalSpawner : MonoBehaviour
         if (database != null)
         {
             animals = database.GetItemsByCategory<AnimalDataSO>(ItemCategory.Animal).ToList();
+        }
+
+        if (!animalsParent)
+        {
+            animalsParent = new GameObject("Animals").transform;
         }
     }
 
@@ -44,13 +64,14 @@ public class AnimalSpawner : MonoBehaviour
 
         if (!CanSpawnAnimal(animalData)) return;
 
-        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
-        SpawnAnimal(animalData, spawnPoint);
+        Animal animal = SpawnAnimal(animalData, GetRandomLeavePoint());
+        if (animal == null) return;
+        animal.Initialize();
     }
 
     private bool CanSpawn()
     {
-        return animals.Count > 0 && spawnPoints.Count > 0 && spawnedAnimalIDs.Count < maxAnimals;
+        return animals.Count > 0 && scenePoints.SpawnPoints.Count > 0 && spawnedAnimalIDs.Count < maxAnimals;
     }
 
     private bool CanSpawnAnimal(AnimalDataSO animalData)
@@ -66,51 +87,33 @@ public class AnimalSpawner : MonoBehaviour
         return true;
     }
 
-    private void SpawnAnimal(AnimalDataSO animalData, Transform spawnPoint)
+    public Animal SpawnAnimal(AnimalDataSO animalData, Vector3 spawnPoint)
     {
-        GameObject go = Instantiate(animalData.prefab, spawnPoint.position, spawnPoint.rotation, animalsParent);
+        Debug.Log($"Spawning animal: {animalData.displayName} at {spawnPoint}");
+        GameObject go = Instantiate(animalData.prefab, spawnPoint, Quaternion.identity, animalsParent);
         spawnedAnimalIDs.Add(animalData.displayName);
 
-        if (!go.TryGetComponent<Animal>(out var animal)) return;
+        if (!go.TryGetComponent<Animal>(out var animal)) return null;
 
-        SetupPatrol(go);
-        SetupLeave(go, spawnPoint);
-
-        animal.SpawnAsVisitor();
         animal.BecameResident += () => UnregisterAnimal(animalData.displayName);
         animal.LeftGarden += () => UnregisterAnimal(animalData.displayName);
-    }
 
-    private void SetupPatrol(GameObject go)
-    {
-        if (waypointPath == null) return;
-
-        AnimalPatrol patrol = go.GetComponentInChildren<AnimalPatrol>();
-        if (patrol)
-        {
-            patrol.SetWaypoints(waypointPath);
-        }
-        else
-        {
-            Debug.LogWarning($"Animal prefab {go.name} does not have an AnimalPatrol component.");
-        }
-    }
-
-    private void SetupLeave(GameObject go, Transform spawnPoint)
-    {
-        AnimalLeave leave = go.GetComponentInChildren<AnimalLeave>();
-        if (leave)
-        {
-            leave.SetSpawnPoint(spawnPoint);
-        }
-        else
-        {
-            Debug.LogWarning($"Animal prefab {go.name} does not have an AnimalLeave component.");
-        }
+        return animal;
     }
 
     private void UnregisterAnimal(string id)
     {
         spawnedAnimalIDs.Remove(id);
+    }
+
+    public Vector3 GetRandomLeavePoint()
+    {        
+        Vector3 point = scenePoints.SpawnPoints[Random.Range(0, scenePoints.SpawnPoints.Count)].position;
+        return point;
+    }
+
+    public WaypointPath GetWaypointPath()
+    {
+        return scenePoints.WaypointPath;
     }
 }

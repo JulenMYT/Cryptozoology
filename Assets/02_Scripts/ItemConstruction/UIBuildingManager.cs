@@ -70,6 +70,6 @@ public class UIBuildingManager : MonoBehaviour
             Debug.Log("Max count reached for item: " + item.name);
             return;
         }
-        GameManager.Instance.BuildingSystem.SelectItem(item);
+        GameManager.Instance.BuildingSystem.SetPlacementMode(item);
     }
 }

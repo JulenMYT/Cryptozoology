@@ -1,8 +1,31 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SaveManager : MonoBehaviour
 {
+    private static string PrefabPath = "SaveManagerPrefab";
+
+    private static SaveManager instance;
+    public static SaveManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                GameObject go = Instantiate(Resources.Load<GameObject>(PrefabPath));
+                instance = go.GetComponent<SaveManager>();
+                DontDestroyOnLoad(go);
+            }
+            return instance;
+        }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void InitializeBeforeScene()
+    {
+        _ = Instance;
+    }
     public SaveData saveData;
 
     public event Action OnSave;
@@ -27,7 +50,9 @@ public class SaveManager : MonoBehaviour
 
     private void LoadGame()
     {
+        GameManager.Instance.DayNight.Load(saveData.dayNightSaveData);
         LoadPlaceableObjects();
+        LoadAnimals();
     }
 
     private void LoadPlaceableObjects()
@@ -37,27 +62,8 @@ public class SaveManager : MonoBehaviour
             try
             {
                 ObjectData itemData = ItemDatabaseRuntime.Get(objData.name);
-                if (itemData == null)
-                {
-                    Debug.LogWarning($"ItemData with name {objData.name} not found in database.");
-                    continue;
-                }
-
                 GameObject obj = GameManager.Instance.BuildingSystem.PlaceItem(itemData, objData.position);
-
-                if (obj == null)
-                {
-                    Debug.LogWarning($"Failed to place item {itemData.displayName} at position {objData.position}.");
-                    continue;
-                }
-
                 PlaceableObject placeableObject = obj.GetComponent<PlaceableObject>();
-
-                if (placeableObject == null)
-                {
-                    Debug.LogWarning($"Placed object does not have a PlaceableObject component.");
-                    continue;
-                }
 
                 placeableObject.Initialize(itemData, objData);
                 placeableObject.Place();
@@ -70,6 +76,31 @@ public class SaveManager : MonoBehaviour
         }
     }
 
+    private void LoadAnimals()
+    {
+        foreach (var animalData in saveData.animalDatas.Values)
+        {
+            AnimalDataSO itemData = (AnimalDataSO)ItemDatabaseRuntime.Get(animalData.name);
+            Animal animal;
+            if (animalData.Type == AnimalType.Resident)
+            {
+                GameObject obj = GameManager.Instance.BuildingSystem.PlaceItem(itemData, animalData.Position);
+                animal = obj.GetComponent<Animal>();
+            }
+            else
+            {
+                animal = GameManager.Instance.AnimalSpawner.SpawnAnimal(itemData, animalData.Position);
+            }
+
+            animal.Initialize(animalData);
+        }
+
+        GameManager.Instance.Animals.LoadFromSave(
+            new List<AnimalManagerData>(saveData.animalGlobalDatas.Values)
+        );
+    }
+
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.F5))
@@ -81,10 +112,5 @@ public class SaveManager : MonoBehaviour
         {
             SaveSystem.DeleteSave();
         }
-    }
-
-    private void OnApplicationQuit()
-    {
-        SaveGame();
     }
 }

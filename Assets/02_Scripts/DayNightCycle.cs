@@ -10,9 +10,19 @@ public class DayNightCycleManager : MonoBehaviour
     public float TimeOfDay => timeOfDay;
     public float DayLengthInSeconds => dayLengthInSeconds;
 
-    private void Start()
+    private void Awake()
     {
         timeOfDay = Mathf.Clamp01(initialTimeOfDay);
+    }
+
+    private void Start()
+    {
+        SaveManager.Instance.OnSave += Save;
+    }
+
+    private void OnDisable()
+    {
+        SaveManager.Instance.OnSave -= Save;
     }
 
     private void Update()
@@ -37,5 +47,19 @@ public class DayNightCycleManager : MonoBehaviour
     public int GetMinute()
     {
         return Mathf.FloorToInt((timeOfDay * 24f - GetHour()) * 60f);
+    }
+
+    public void Load(DayNightSaveData dayNightSaveData)
+    {
+        SetTimeOfDay(dayNightSaveData.timeOfDay);
+    }
+
+    public void Save()
+    {
+        DayNightSaveData dayNightSaveData = new DayNightSaveData
+        {
+            timeOfDay = timeOfDay
+        };
+        SaveManager.Instance.saveData.dayNightSaveData = dayNightSaveData;
     }
 }

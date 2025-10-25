@@ -18,10 +18,10 @@ MonoBehaviour:
   prefab: {fileID: 8910400030175194657, guid: 246698738f369f149b6dea6354a9892e, type: 3}
   gridSize: {x: 1, y: 1}
   isUnique: 0
+  isGridItem: 1
   totalGrowthTime: 20
   growthSprites:
   - {fileID: -1643887843, guid: 5b15a4dd93c8af343b5a7a8e79e546b6, type: 3}
   - {fileID: -1345220671, guid: 5b15a4dd93c8af343b5a7a8e79e546b6, type: 3}
   - {fileID: 1458907863, guid: 5b15a4dd93c8af343b5a7a8e79e546b6, type: 3}
-  matureName: StrawberryMature
   portions: 3

@@ -18,4 +18,5 @@ public class ObjectData : ScriptableObject
     public GameObject prefab;
     public Vector2Int gridSize = Vector2Int.one;
     public bool isUnique = false;
+    public bool isGridItem = false;
 }

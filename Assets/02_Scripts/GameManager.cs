@@ -26,10 +26,6 @@ public class GameManager : MonoBehaviour
         _ = Instance;
     }
 
-    [Header("Garden")]
-    [SerializeField] private GardenState gardenState;
-    public GardenState Garden => gardenState;
-
     [Header("Input")]
     [SerializeField] private InputManager inputManager;
     public InputManager Input => inputManager;
@@ -54,7 +50,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private BuildingSystem buildingSystem;     
     public BuildingSystem BuildingSystem => buildingSystem;
 
-    [Header("Save System")]
-    [SerializeField] private SaveManager saveManager;
-    public SaveManager SaveManager => saveManager;
+    [Header("Garden")]
+    [SerializeField] private GardenState gardenState;
+    public GardenState Garden => gardenState;
+
+    [Header("Spawner")]
+    [SerializeField] private AnimalSpawner animalSpawner;
+    public AnimalSpawner AnimalSpawner => animalSpawner;
 }

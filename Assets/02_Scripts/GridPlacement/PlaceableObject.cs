@@ -3,42 +3,47 @@ using UnityEngine;
 
 public class PlaceableObject : MonoBehaviour
 {
-    public Vector3Int Cell { get; private set; }
-    public string Name { get; private set; }
-    public ObjectData ObjectData {get; private set; }
+    public ObjectData ObjectData {get; protected set; }
 
     public bool Placed {get; private set;} = false;
 
     [ReadOnly]
-    public PlaceableObjectSaveData PlaceableObjectData = new();  
+    protected PlaceableObjectSaveData PlaceableObjectData = new();  
     
     public virtual void Initialize(ObjectData objectData)
     {
         ObjectData = objectData;
         PlaceableObjectData.name = objectData.displayName;
         PlaceableObjectData.ID = SaveData.GenerateID();
+        GameManager.Instance.Garden.AddObject(objectData.displayName, gameObject);
     }
 
     public virtual void Initialize(ObjectData objectData, PlaceableObjectSaveData placeableObjectData)
     {
         ObjectData = objectData;
         PlaceableObjectData = placeableObjectData;
+        GameManager.Instance.Garden.AddObject(objectData.displayName, gameObject);
     }
 
     public virtual void Place()
     {
         Placed = true;
-        GameManager.Instance.SaveManager.OnSave += Save;
+        SaveManager.Instance.OnSave += Save;
     }
 
     protected virtual void Save()
     {
         PlaceableObjectData.position = transform.position;
-        GameManager.Instance.SaveManager.saveData.AddData(PlaceableObjectData);
+        SaveManager.Instance.saveData.AddData(PlaceableObjectData);
     }
 
     private void OnDisable()
     {
-        GameManager.Instance.SaveManager.OnSave -= Save;
+        SaveManager.Instance.OnSave -= Save;
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.Garden.RemoveObject(ObjectData.displayName, gameObject);
     }
 }

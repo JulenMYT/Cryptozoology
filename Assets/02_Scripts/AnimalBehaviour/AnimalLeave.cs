@@ -8,21 +8,26 @@ public class AnimalLeave : MonoBehaviour, IAnimalBehaviour
 
     [SerializeField] private NavMeshAgent agent;
 
-    private Transform spawnPoint;
+    [SerializeField]
+    private Vector3 leavePoint;
     private bool active = false;
 
     public bool IsActive() => active;
 
-    public void SetSpawnPoint(Transform point)
+    public void SetLeavePoint(Vector3 point)
     {
-        spawnPoint = point;
+        leavePoint = point;
     }
 
     public void Activate()
     {
-        if (spawnPoint == null) return;
+        if (leavePoint == null)
+        {
+            SetLeavePoint(GameManager.Instance.AnimalSpawner.GetRandomLeavePoint());
+        }
+
         active = true;
-        agent.SetDestination(spawnPoint.position);
+        agent.SetDestination(leavePoint);
     }
 
     public void Deactivate()
@@ -34,7 +39,7 @@ public class AnimalLeave : MonoBehaviour, IAnimalBehaviour
     private void Update()
     {
         if (!active) return;
-        if (spawnPoint == null) return;
+        if (leavePoint == null) return;
 
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
         {

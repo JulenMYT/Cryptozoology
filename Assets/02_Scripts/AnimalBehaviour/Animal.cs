@@ -3,136 +3,157 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum AnimalState
+{
+    Idle,
+    Wandering,
+    Eating,
+    Sleeping,
+    Patrolling,
+    Leaving
+}
+
+public enum AnimalType
+{
+    NonResident,
+    Visitor,
+    Resident
+}
+
 public class Animal : MonoBehaviour, IEdible
 {
     [SerializeField] private AnimalController controller;
-    [SerializeField] private AnimalWander wanderBehaviour;
-    [SerializeField] private AnimalEating eatingBehaviour;
-    [SerializeField] private AnimalPatrol patrolBehaviour;
-    [SerializeField] private AnimalLeave leaveBehaviour;
-    [SerializeField] private AnimalSleep sleepBehaviour;
-
+    [SerializeField] private AnimalWander wander;
+    [SerializeField] private AnimalEating eating;
+    [SerializeField] private AnimalPatrol patrol;
+    [SerializeField] private AnimalLeave leave;
+    [SerializeField] private AnimalSleep sleep;
+    [SerializeField] private AnimalDataSO data;
     [SerializeField] private float detectionRadius;
 
-    private const float foodCheckInterval = 0.5f;
+    private const float FoodCheckInterval = 0.5f;
     private float foodCheckTimer;
-
     private NavMeshAgent agent;
     private Dictionary<string, int> eatenCounts = new();
-    [SerializeField] private AnimalDataSO data;
 
-    private bool isActive;
-    private bool visitingGarden;
+    public AnimalState State { get; private set; } = AnimalState.Idle;
+    public AnimalType Type { get; private set; } = AnimalType.NonResident;
     private bool safe;
-
-    public bool IsResident { get; private set; }
-    public bool IsVisiting => !IsResident;
 
     public event Action BecameResident;
     public event Action LeftGarden;
+
+    public AnimalSaveData AnimalSaveData = new();
+    private bool placed = false;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         agent.avoidancePriority += UnityEngine.Random.Range(-10, 10);
 
-        if (eatingBehaviour != null)
+        if (eating != null)
         {
-            eatingBehaviour.Eating += OnStartedEating;
-            eatingBehaviour.DoneEating += OnDoneEating;
+            eating.Eating += OnStartedEating;
+            eating.DoneEating += OnDoneEating;
         }
 
-        if (sleepBehaviour != null)
+        if (sleep != null)
         {
-            sleepBehaviour.EnterHouse += () => safe = true;
-            sleepBehaviour.ExitHouse += () => safe = false;
+            sleep.EnterHouse += () => safe = true;
+            sleep.ExitHouse += () => safe = false;
         }
     }
 
     private void Update()
     {
-        if (!isActive || leaveBehaviour.IsActive()) return;
+        if (!placed) return;
+        if (State == AnimalState.Leaving) return;
 
-        if (!IsResident)
+        switch (Type)
         {
-            if (!visitingGarden) HandlePotentialVisitor();
-            else HandleNonResidentBehavior();
-        }
-        else
-        {
-            HandleResidentBehavior();
+            case AnimalType.NonResident:
+                HandleNonResident();
+                break;
+            case AnimalType.Visitor:
+                HandleVisitor();
+                break;
+            case AnimalType.Resident:
+                HandleResident();
+                break;
         }
     }
 
-    private void HandlePotentialVisitor()
+    private void HandleNonResident()
     {
         if (data.ShouldSleep())
         {
-            StartLeave();
+            StartLeaving();
             return;
         }
 
-        if (CheckVisitingCondition())
+        if (CanVisitGarden())
+        {
             BecomeVisitor();
+        }
     }
 
-    private void HandleNonResidentBehavior()
+    private void HandleVisitor()
     {
-        if (CheckResidenceCondition())
+        if (CanBecomeResident())
         {
             BecomeResident();
             return;
         }
 
-        if (data.ShouldSleep() && !eatingBehaviour.IsActive())
+        if (data.ShouldSleep() && State != AnimalState.Eating)
         {
-            StartLeave();
+            StartLeaving();
             return;
         }
 
-        TryEatFood();
+        TryFindFood();
     }
 
-    private void HandleResidentBehavior()
+    private void HandleResident()
     {
-        if (data.ShouldSleep() && !sleepBehaviour.IsActive())
+        if (data.ShouldSleep() && State != AnimalState.Sleeping)
         {
-            var houseObj = GameManager.Instance.Garden.GetObject(data.houseID);
-            if (houseObj != null) sleepBehaviour.SetHouse(houseObj);
-            controller.SetBehaviour(sleepBehaviour);
+            var house = GameManager.Instance.Garden.GetObject(data.houseID);
+            if (house != null) sleep.SetHouse(house);
+            controller.SetBehaviour(sleep);
+            State = AnimalState.Sleeping;
         }
-        else if (!data.ShouldSleep() && sleepBehaviour.IsActive())
+        else if (!data.ShouldSleep() && State == AnimalState.Sleeping)
         {
-            controller.SetBehaviour(wanderBehaviour);
+            controller.SetBehaviour(wander);
+            State = AnimalState.Wandering;
         }
     }
 
-    private void TryEatFood()
+    private void TryFindFood()
     {
-        if (eatingBehaviour.IsActive()) return;
+        if (State == AnimalState.Eating) return;
 
         foodCheckTimer += Time.deltaTime;
-        if (foodCheckTimer < foodCheckInterval) return;
+        if (foodCheckTimer < FoodCheckInterval) return;
 
         foodCheckTimer = 0f;
-        IEdible target = DetectFood();
-        if (target != null)
-        {
-            eatingBehaviour.SetTarget(target);
-            controller.SetBehaviour(eatingBehaviour);
-        }
+        var target = DetectFood();
+        if (target == null) return;
+        eating.SetTarget(target);
+        controller.SetBehaviour(eating);
+        State = AnimalState.Eating;
     }
 
     private IEdible DetectFood()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, detectionRadius);
+        var hits = Physics.OverlapSphere(transform.position, detectionRadius);
         foreach (var hit in hits)
         {
-            if (hit.TryGetComponent<IEdible>(out var edible) && edible.CanBeEaten())
-            {
-                if (data.conditions.residenceCondition.eatingConditions.Exists(c => c.id == edible.GetId()))
-                    return edible;
-            }
+            if (!hit.TryGetComponent<IEdible>(out var edible)) continue;
+            if (!edible.CanBeEaten()) continue;
+            if (data.conditions.residenceCondition.eatingConditions.Exists(c => c.id == edible.GetId()))
+                return edible;
         }
         return null;
     }
@@ -145,58 +166,94 @@ public class Animal : MonoBehaviour, IEdible
 
     private void OnDoneEating()
     {
-        controller.SetBehaviour(wanderBehaviour);
+        controller.SetBehaviour(wander);
+        State = AnimalState.Wandering;
     }
 
-    private void StartLeave()
+    private void StartLeaving()
     {
-        controller.SetBehaviour(leaveBehaviour);
-        leaveBehaviour.FinishedLeaving -= LeaveGarden;
-        leaveBehaviour.FinishedLeaving += LeaveGarden;
+        controller.SetBehaviour(leave);
+        leave.FinishedLeaving -= LeaveGarden;
+        leave.FinishedLeaving += LeaveGarden;
+        State = AnimalState.Leaving;
     }
 
-    public void Place()
+    public void Initialize(AnimalType type = AnimalType.NonResident)
     {
-        IsResident = true;
-        isActive = true;
-        controller.SetBehaviour(wanderBehaviour);
-        wanderBehaviour.SetZone(NavZone.Garden);
-        NavMeshZoneManager.SetAgentZone(agent, NavZone.Garden);
-        UnlockSection(1);
-        Register();
+        SaveManager.Instance.OnSave += Save;
+
+        placed = true;
+        AnimalSaveData.name = data.displayName;
+        AnimalSaveData.ID = SaveData.GenerateID();
+
+        switch (type)
+        {
+            case AnimalType.NonResident:
+                State = AnimalState.Patrolling;
+                controller.SetBehaviour(patrol);
+                wander.SetZone(NavZone.Outside);
+                NavMeshZoneManager.SetAgentZone(agent, NavZone.Outside);
+                break;
+
+            case AnimalType.Visitor:
+                BecomeVisitor();
+                break;
+
+            case AnimalType.Resident:
+                BecomeResident();
+                break;
+        }
     }
 
-    public void SpawnAsVisitor()
+    public void Initialize(AnimalSaveData animalSaveData)
     {
-        IsResident = false;
-        visitingGarden = false;
-        isActive = true;
-        controller.SetBehaviour(patrolBehaviour);
-        wanderBehaviour.SetZone(NavZone.Outside);
-        NavMeshZoneManager.SetAgentZone(agent, NavZone.Outside);
+        SaveManager.Instance.OnSave += Save;
+
+        placed = true;
+        AnimalSaveData = animalSaveData;
+        transform.rotation = animalSaveData.Rotation;
+        eatenCounts = animalSaveData.eatenCounts;
+
+        switch (animalSaveData.Type)
+        {
+            case AnimalType.NonResident:
+                State = AnimalState.Patrolling;
+                controller.SetBehaviour(patrol);
+                wander.SetZone(NavZone.Outside);
+                NavMeshZoneManager.SetAgentZone(agent, NavZone.Outside);
+                break;
+
+            case AnimalType.Visitor:
+                BecomeVisitor();
+                break;
+
+            case AnimalType.Resident:
+                BecomeResident();
+                break;
+        }
     }
 
     public void BecomeVisitor()
     {
-        IsResident = false;
-        visitingGarden = true;
-        isActive = true;
-        controller.SetBehaviour(wanderBehaviour);
-        wanderBehaviour.SetZone(NavZone.Garden);
+        Type = AnimalType.Visitor;
+        State = AnimalState.Wandering;
+        controller.SetBehaviour(wander);
+        wander.SetZone(NavZone.Garden);
         NavMeshZoneManager.SetAgentZone(agent, NavZone.All);
     }
 
     public void BecomeResident()
     {
-        if (IsResident) return;
+        if (Type == AnimalType.Resident) return;
 
-        IsResident = true;
-        controller.SetBehaviour(wanderBehaviour);
-        wanderBehaviour.SetZone(NavZone.Garden);
+        Type = AnimalType.Resident;
+        State = AnimalState.Wandering;
+        controller.SetBehaviour(wander);
+        wander.SetZone(NavZone.Garden);
         GameManager.Instance.Garden.AddObject(data.displayName, gameObject);
         BecameResident?.Invoke();
         UnlockSection(1);
-        Register();
+        RegisterAnimal();
     }
 
     public void LeaveGarden()
@@ -205,7 +262,7 @@ public class Animal : MonoBehaviour, IEdible
         Destroy(gameObject);
     }
 
-    public bool CheckResidenceCondition()
+    public bool CanBecomeResident()
     {
         foreach (var cond in data.conditions.residenceCondition.eatingConditions)
             if (!eatenCounts.ContainsKey(cond.id) || eatenCounts[cond.id] < cond.minCount) return false;
@@ -216,7 +273,7 @@ public class Animal : MonoBehaviour, IEdible
         return true;
     }
 
-    public bool CheckVisitingCondition()
+    public bool CanVisitGarden()
     {
         foreach (var cond in data.conditions.visitCondition.placingConditions)
             if (GameManager.Instance.Garden.GetCount(cond.id) < cond.minCount) return false;
@@ -224,7 +281,7 @@ public class Animal : MonoBehaviour, IEdible
         return true;
     }
 
-    public bool CanBeEaten() => IsResident && !safe;
+    public bool CanBeEaten() => Type == AnimalType.Resident && !safe;
 
     public void Eat()
     {
@@ -234,15 +291,34 @@ public class Animal : MonoBehaviour, IEdible
 
     public string GetId() => data.displayName;
 
-    private void UnlockSection(int level) => GameManager.Instance.Encyclopedia.UnlockSection(data.displayName, level);
+    private void UnlockSection(int level)
+    {
+        GameManager.Instance.Encyclopedia.UnlockSection(data.displayName, level);
+    }
 
-    private void Register()
+    private void RegisterAnimal()
     {
         GameManager.Instance.Animals.RegisterAnimal(data, 1);
     }
 
-    private void FixedUpdate()
+    private void OnDestroy()
     {
         GameManager.Instance.Animals.RemoveAnimal(data, 0);
+    }
+
+    private void Save()
+    {
+        AnimalSaveData.Type = Type;
+        AnimalSaveData.State = State;
+        AnimalSaveData.Position = transform.position;
+        AnimalSaveData.Rotation = transform.rotation;
+        AnimalSaveData.Scale = transform.localScale;
+
+        if (Type != AnimalType.Resident)
+        {
+            AnimalSaveData.eatenCounts = eatenCounts;
+        }
+
+        SaveManager.Instance.saveData.AddData(AnimalSaveData);
     }
 }

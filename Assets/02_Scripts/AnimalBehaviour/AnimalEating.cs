@@ -27,7 +27,10 @@ public class AnimalEating : MonoBehaviour, IAnimalBehaviour
 
     public void Activate()
     {
-        if (targetFood == null) return;
+        if (targetFood == null)
+        {
+            FinishEating();
+        }
         active = true;
         MoveToTarget();
         agent.speed = chaseSpeed;

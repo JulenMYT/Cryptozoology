@@ -151,13 +151,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 6873622573170812156}
-  wanderBehaviour: {fileID: 2936669249516026100}
-  eatingBehaviour: {fileID: 800614967670901300}
-  patrolBehaviour: {fileID: 7195954830503434333}
-  leaveBehaviour: {fileID: 3107953100787686970}
-  sleepBehaviour: {fileID: 7832687821443010060}
-  detectionRadius: 5
+  wander: {fileID: 2936669249516026100}
+  eating: {fileID: 800614967670901300}
+  patrol: {fileID: 7195954830503434333}
+  leave: {fileID: 3107953100787686970}
+  sleep: {fileID: 7832687821443010060}
   data: {fileID: 11400000, guid: 95fb55adc1bf61a45994550b15a4e0ae, type: 2}
+  detectionRadius: 5
 --- !u!195 &6600765044953645119
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -388,7 +388,6 @@ MonoBehaviour:
   agent: {fileID: 6600765044953645119}
   parent: {fileID: 0}
   stoppingDistance: 1
-  sleepScale: {x: 0.1, y: 0.1, z: 0.1}
   shrinkDuration: 2
 --- !u!1 &8428941743681796796
 GameObject:

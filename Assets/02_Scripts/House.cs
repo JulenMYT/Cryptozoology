@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 public class House : PlaceableObject, IClickable
@@ -9,6 +10,9 @@ public class House : PlaceableObject, IClickable
 
     private List<AnimalSleep> animals = new();
     public float FoodAmount => foodAmount;
+
+    [ReadOnly]
+    public HouseSaveData HouseSaveData = new();
 
     private void Start()
     {
@@ -29,10 +33,27 @@ public class House : PlaceableObject, IClickable
         }
     }
 
+    public override void Initialize(ObjectData data)
+    {
+        ObjectData = data;
+        HouseSaveData.ID = SaveData.GenerateID();
+        HouseSaveData.name = data.displayName;
+        foodAmount = capacity;
+        GameManager.Instance.Garden.AddObject(data.displayName, gameObject);
+    }
+
+    public override void Initialize(ObjectData objectData, PlaceableObjectSaveData saveData)
+    {
+        ObjectData = objectData;
+        HouseSaveData = saveData as HouseSaveData;
+        foodAmount = HouseSaveData.foodAmount;
+        GameManager.Instance.Garden.AddObject(objectData.displayName, gameObject);
+    }
+
     public override void Place()
     {
         base.Place();
-        foodAmount = capacity;
+        
         uiHouse.OnFeedButtonClicked += FillFood;
     }
 
@@ -89,5 +110,12 @@ public class House : PlaceableObject, IClickable
     public void OnCancel()
     {
         uiHouse.Hide();
+    }
+
+    protected override void Save()
+    {
+        HouseSaveData.position = transform.position;
+        HouseSaveData.foodAmount = foodAmount;
+        SaveManager.Instance.saveData.AddData(HouseSaveData);
     }
 }

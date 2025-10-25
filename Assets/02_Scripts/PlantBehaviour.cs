@@ -13,12 +13,14 @@ public class PlantBehaviour : PlaceableObject, IEdible
     private PlantVisual visual;
 
     [ReadOnly]
-    public PlantSaveData PlantSaveData = new();
+    private PlantSaveData PlantSaveData = new();
 
     public override void Initialize(ObjectData data)
     {
         PlantSaveData.ID = SaveData.GenerateID();
-        PlantSaveData.name = data.displayName;  
+        PlantSaveData.name = data.displayName;
+
+        GameManager.Instance.Garden.AddObject(data.displayName, gameObject);
 
         PlantDataSO plantData = data as PlantDataSO;
         this.plantData = plantData;
@@ -37,6 +39,8 @@ public class PlantBehaviour : PlaceableObject, IEdible
         PlantDataSO plantData = objectData as PlantDataSO;
         this.plantData = plantData;
         stageDuration = this.plantData.totalGrowthTime / Mathf.Max(this.plantData.growthSprites.Length - 1, 1);
+
+        GameManager.Instance.Garden.AddObject(objectData.displayName, gameObject);
 
         PlantSaveData = saveData as PlantSaveData;
 
@@ -79,7 +83,7 @@ public class PlantBehaviour : PlaceableObject, IEdible
 
     public bool CanBeEaten()
     {
-        return isMature;
+        return isMature && !IsDepleted();
     }
 
     public void Eat()
@@ -93,7 +97,7 @@ public class PlantBehaviour : PlaceableObject, IEdible
 
     public string GetId()
     {
-        return plantData.name;
+        return plantData.displayName;
     }
 
     protected override void Save()
@@ -103,6 +107,6 @@ public class PlantBehaviour : PlaceableObject, IEdible
         PlantSaveData.timer = timer;
         PlantSaveData.portionsLeft = portionsLeft;
         PlantSaveData.isMature = isMature;
-        GameManager.Instance.SaveManager.saveData.AddData(PlantSaveData);
+        SaveManager.Instance.saveData.AddData(PlantSaveData);
     }
 }

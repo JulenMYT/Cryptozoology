@@ -18,3 +18,9 @@ public class PlantSaveData : PlaceableObjectSaveData
     public int portionsLeft;
     public bool isMature;
 }
+
+[Serializable]
+public class HouseSaveData : PlaceableObjectSaveData
+{
+    public float foodAmount;
+}

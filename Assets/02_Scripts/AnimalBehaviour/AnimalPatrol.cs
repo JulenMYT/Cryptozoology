@@ -43,7 +43,10 @@ public class AnimalPatrol : MonoBehaviour, IAnimalBehaviour
 
     public void Activate()
     {
-        if (waypoints.Count == 0) return;
+        if (waypoints.Count == 0)
+        {
+            SetWaypoints(GameManager.Instance.AnimalSpawner.GetWaypointPath());
+        }
 
         float minDist = float.MaxValue;
         for (int i = 0; i < waypoints.Count; i++)

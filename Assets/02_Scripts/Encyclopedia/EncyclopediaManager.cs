@@ -11,12 +11,24 @@ public class AnimalProgress
 public class EncyclopediaManager : MonoBehaviour
 {
     [SerializeField] private List<AnimalProgress> serializedProgress = new();
+    [SerializeField] private bool bLoadSerialized = false;
 
     private Dictionary<string, AnimalProgress> progress = new();
 
     private void Awake()
     {
-        LoadSerialized();
+        if (bLoadSerialized)
+            LoadSerialized();
+    }
+
+    private void Start()
+    {
+        SaveManager.Instance.OnSave += Save;
+    }
+
+    private void OnDisable()
+    {
+        SaveManager.Instance.OnSave -= Save;
     }
 
     private void LoadSerialized()
@@ -54,5 +66,36 @@ public class EncyclopediaManager : MonoBehaviour
     {
         if (!progress.ContainsKey(animalId)) return new List<int>();
         return progress[animalId].unlockedSections;
+    }
+
+    private void Save()
+    {
+        var encyclopediaData = new EncyclopediaSaveData();
+
+        foreach (var kvp in progress)
+        {
+            encyclopediaData.progress[kvp.Value.animalId] = kvp.Value.unlockedSections;
+        }
+
+        SaveManager.Instance.saveData.encyclopediaData = encyclopediaData;
+    }
+
+    public void Load(EncyclopediaSaveData encyclopediaData)
+    {
+        if (bLoadSerialized)
+            return;
+
+        progress.Clear();
+        serializedProgress.Clear();
+        foreach (var entry in encyclopediaData.progress)
+        {
+            var animalProgress = new AnimalProgress
+            {
+                animalId = entry.Key,
+                unlockedSections = new List<int>(entry.Value)
+            };
+            progress[entry.Key] = animalProgress;
+            serializedProgress.Add(animalProgress);
+        }
     }
 }

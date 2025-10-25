@@ -1,6 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum BuildingMode
+{
+    None,
+    Placement,
+    Removal
+}
 public class BuildingSystem : MonoBehaviour
 {
     [Header("Grid Settings")]
@@ -10,86 +16,78 @@ public class BuildingSystem : MonoBehaviour
     [SerializeField] private LayerMask gridLayer;
 
     [Header("Placement Objects")]
-    [SerializeField] private Transform objectsParent;
+    private Transform objectsParent;
     [SerializeField] private PlacementCursor cursor;
 
     private ObjectData selectedItem;
     private GameObject previewObject;
     private ObjectGrid objectGrid = new ObjectGrid();
-    private bool removeMode = false;
+    private BuildingMode currentMode = BuildingMode.None;
 
-    private void OnDisable()
+    private void Awake()
     {
-        UnsubscribeClicks();
+        if (!objectsParent)
+        {
+            GameObject parentGO = new GameObject("ObjectsParent");
+            objectsParent = parentGO.transform;
+        }
+        gameObject.SetActive(false);
     }
 
     private void Update()
     {
-        if (selectedItem == null && !removeMode) return;
-        if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, 100f, gridLayer)) return;
-
+        if (currentMode == BuildingMode.None || !RaycastGrid(out RaycastHit hit)) return;
 
         Vector3Int cellPos = grid.WorldToCell(hit.point);
         if (!IsInsideGrid(cellPos, selectedItem?.gridSize ?? Vector2Int.one)) return;
 
-        if (!removeMode) MovePreview(hit.point);
-        UpdateCursor(cellPos);  
+        if (currentMode == BuildingMode.Placement) MovePreview(hit.point);
+        UpdateCursor(cellPos);
     }
 
-    public void SelectItem(ObjectData item)
+    public void SetPlacementMode(ObjectData item)
     {
+        gameObject.SetActive(true);
+
         selectedItem = item;
-        removeMode = false;
-        DestroyPreview();
+        currentMode = BuildingMode.Placement;
 
-        if (item.prefab != null)
-            previewObject = Instantiate(item.prefab, Vector3.zero, Quaternion.identity, objectsParent);
-
-        if (cursor != null)
-        {
-            cursor.SetActive(true);
-            cursor.SetSize(item.gridSize);
-        }
+        ResetPreview();
+        CreatePreview(item.prefab);
+        SetupCursor(item.gridSize);
 
         SubscribeClicks();
-        GameManager.Instance.GameModeManager.SetMode(GameMode.Placement);
+        GameManager.Instance.GameModeManager.SetMode(GameMode.Building);
     }
 
     public void SetRemoveMode()
     {
-        removeMode = true;
-        DestroyPreview();
+        gameObject.SetActive(true);
+
+        currentMode = BuildingMode.Removal;
+
+        ResetPreview();
+        SetupCursor(Vector2Int.one, true, false);
+
         SubscribeClicks();
-
-        if (cursor != null)
-        {
-            cursor.SetActive(true);
-            cursor.SetSize(Vector2Int.one);
-            cursor.UpdateColor(false);
-        }
-
-        GameManager.Instance.GameModeManager.SetMode(GameMode.Placement);
-    }
-
-    private void SubscribeClicks()
-    {
-        UnsubscribeClicks();
-        GameManager.Instance.Input.OnLeftClick += HandleLeftClick;
-        GameManager.Instance.Input.OnRightClick += HandleRightClick;
-    }
-
-    private void UnsubscribeClicks()
-    {
-        GameManager.Instance.Input.OnLeftClick -= HandleLeftClick;
-        GameManager.Instance.Input.OnRightClick -= HandleRightClick;
+        GameManager.Instance.GameModeManager.SetMode(GameMode.Building);
     }
 
     private void HandleLeftClick()
     {
         if (GameManager.Instance.Input.IsPointedOverUI()) return;
 
-        if (removeMode) TryRemoveAtCursor();
-        else TryPlaceAtCursor();
+        switch(currentMode)
+        {
+            case BuildingMode.Placement:
+                TryPlaceAtCursor();
+                break;
+            case BuildingMode.Removal:
+                TryRemoveAtCursor();
+                break;
+            default:
+                break;
+        }
     }
 
     private void HandleRightClick()
@@ -100,17 +98,19 @@ public class BuildingSystem : MonoBehaviour
 
     private void TryPlaceAtCursor()
     {
-        if (selectedItem == null) return;
-        if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, 100f, gridLayer)) return;
+        if (!selectedItem || !RaycastGrid(out RaycastHit hit)) return;
 
         GameObject obj = PlaceItem(selectedItem, hit.point);
-        if (!obj) return;
 
-        obj.TryGetComponent<PlaceableObject>(out var placeableObject);
-        if (placeableObject != null)
+        if (obj.TryGetComponent<PlaceableObject>(out var placeableObject))
         {
             placeableObject.Initialize(selectedItem);
             placeableObject.Place();
+        }
+
+        if (obj.TryGetComponent<Animal>(out var animal))
+        {
+            animal.Initialize(AnimalType.Resident);
         }
 
         if (selectedItem.isUnique)
@@ -119,89 +119,101 @@ public class BuildingSystem : MonoBehaviour
 
     private void TryRemoveAtCursor()
     {
-        if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, 100f, gridLayer)) return;
+        if (!RaycastGrid(out RaycastHit hit)) return;
 
         Vector3Int cellPos = grid.WorldToCell(hit.point);
-        if (objectGrid.TryGetObject(cellPos, out var obj))
-            RemoveObject(obj);
-    }
-
-    public void RemoveObjectRequested(GameObject obj)
-    {
-        RemoveObject(obj);
+        if (objectGrid.TryGetObject(cellPos, out var obj)) RemoveObject(obj);
     }
 
     public void RemoveObject(GameObject obj)
     {
-        if (obj == null) return;
+        if (!obj) return;
 
         if (obj.TryGetComponent<PlaceableObject>(out var placeableObject))
         {
-            objectGrid.Remove(obj);
-            GameManager.Instance.Garden.RemoveObject(placeableObject.Name, obj);
+            if (placeableObject.ObjectData == null)
+            {
+                Debug.LogWarning("PlaceableObject has no ObjectData assigned.");
+            }
+            Vector3Int cellPos = grid.WorldToCell(obj.transform.position);
+            objectGrid.Remove(cellPos, placeableObject.ObjectData.gridSize);
         }
-
         Destroy(obj);
     }
 
     public GameObject PlaceItem(ObjectData data, Vector3 position)
     {
-        Vector3Int cellPos = grid.WorldToCell(position);
-        position = grid.GetCellCenterWorld(cellPos);
+        GameObject obj;
 
-        if (!IsInsideGrid(cellPos, data.gridSize)) return null;
-        if (!CanPlaceObject(cellPos, data.gridSize)) return null;
-
-        GameObject obj = Instantiate(data.prefab, position, Quaternion.identity, objectsParent);
-
-        if (data.category == ItemCategory.Animal)
+        if (data.isGridItem)
         {
-            if (obj.TryGetComponent<Animal>(out var animal))
-                animal.Place();
+            Vector3 spawnPos = grid.GetCellCenterWorld(grid.WorldToCell(position));
+            Vector3Int cellPos = grid.WorldToCell(spawnPos);
+
+            if (!IsInsideGrid(cellPos, data.gridSize)) return null;
+            if (!CanPlaceObject(cellPos, data.gridSize)) return null;
+
+            obj = Instantiate(data.prefab, spawnPos, Quaternion.identity, objectsParent);
+            objectGrid.Register(cellPos, obj, data.gridSize);
+            return obj;
         }
         else
         {
-            objectGrid.Register(cellPos, obj, data.gridSize);
+            obj = Instantiate(data.prefab, position, Quaternion.identity, objectsParent);
+            return obj;
         }
-
-        GameManager.Instance.Garden.AddObject(data.displayName, obj);
-
-        return obj;
     }
 
     private void MovePreview(Vector3 position)
     {
-        if (previewObject != null)
-            previewObject.transform.position = position;
+        if (previewObject) previewObject.transform.position = position;
     }
 
     private void UpdateCursor(Vector3Int cellPos)
     {
-        if (cursor == null) return;
+        if (!cursor) return;
 
-        Vector3 position = grid.CellToWorld(cellPos);
-        cursor.UpdatePosition(position);
-        if (!removeMode)
+        cursor.UpdatePosition(grid.CellToWorld(cellPos));
+
+        if (currentMode == BuildingMode.Placement)
             cursor.UpdateColor(CanPlaceObject(cellPos, selectedItem?.gridSize ?? Vector2Int.one));
     }
 
     private void CancelPlacement()
     {
-        DestroyPreview();
-        selectedItem = null;
-        removeMode = false;
-        UnsubscribeClicks();
+        gameObject.SetActive(false);
 
-        if (cursor != null)
-            cursor.SetActive(false);
+        ResetPreview();
+        selectedItem = null;
+        currentMode = BuildingMode.None;
+        UnsubscribeClicks();
+        if (cursor) cursor.SetActive(false);
 
         GameManager.Instance.GameModeManager.SetMode(GameMode.Normal);
     }
 
-    private void DestroyPreview()
+    private void CreatePreview(GameObject prefab)
     {
-        if (previewObject != null)
-            Destroy(previewObject);
+        if (prefab) previewObject = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+    }
+
+    private void ResetPreview()
+    {
+        if (previewObject) Destroy(previewObject);
+    }
+
+    private void SetupCursor(Vector2Int size, bool active = true, bool color = true)
+    {
+        if (!cursor) return;
+
+        cursor.SetActive(active);
+        cursor.SetSize(size);
+        cursor.UpdateColor(color);
+    }
+
+    private bool RaycastGrid(out RaycastHit hit)
+    {
+        return Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100f, gridLayer);
     }
 
     private bool CanPlaceObject(Vector3Int cellPos, Vector2Int size)
@@ -219,11 +231,26 @@ public class BuildingSystem : MonoBehaviour
                cellPos.x + size.x <= gridWidth &&
                cellPos.z + size.y <= gridHeight;
     }
+
+    private void SubscribeClicks()
+    {
+        UnsubscribeClicks();
+        var input = GameManager.Instance.Input;
+        input.OnLeftClick += HandleLeftClick;
+        input.OnRightClick += HandleRightClick;
+    }
+
+    private void UnsubscribeClicks()
+    {
+        var input = GameManager.Instance.Input;
+        input.OnLeftClick -= HandleLeftClick;
+        input.OnRightClick -= HandleRightClick;
+    }
 }
 
 public class ObjectGrid
 {
-    private Dictionary<Vector3Int, GameObject> grid = new();
+    private readonly Dictionary<Vector3Int, GameObject> grid = new();
 
     public void Register(Vector3Int cell, GameObject obj, Vector2Int size)
     {
@@ -232,15 +259,11 @@ public class ObjectGrid
                 grid[new Vector3Int(cell.x + x, cell.y, cell.z + z)] = obj;
     }
 
-    public void Remove(GameObject obj)
+    public void Remove(Vector3Int cellPos, Vector2Int size)
     {
-        if (obj.TryGetComponent<PlaceableObject>(out var placeableObject))
-        {
-            Vector2Int size = placeableObject.ObjectData.gridSize;
-            for (int x = 0; x < size.x; x++)
-                for (int z = 0; z < size.y; z++)
-                    grid.Remove(new Vector3Int(placeableObject.Cell.x + x, placeableObject.Cell.y, placeableObject.Cell.z + z));
-        }
+        for (int x = 0; x < size.x; x++)
+            for (int z = 0; z < size.y; z++)
+                grid.Remove(new Vector3Int(cellPos.x + x, cellPos.y, cellPos.z + z));
     }
 
     public bool IsOccupied(Vector3Int cell) => grid.ContainsKey(cell);

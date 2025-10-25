@@ -303,7 +303,7 @@ MonoBehaviour:
   - {fileID: 2779968721221944406}
   - {fileID: 7895906073040483384}
   - {fileID: 855504089869166697}
-  animalId: 6
+  animalId: Wolf
 --- !u!1 &6752417550104783760
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,6 +10,16 @@ public class AnimalManager : MonoBehaviour
     private Dictionary<string, AnimalGroup> groups = new();
     private float tickTimer = 0f;
 
+    private void Start()
+    {
+        SaveManager.Instance.OnSave += Save;
+    }
+
+    private void OnDisable()
+    {
+        SaveManager.Instance.OnSave -= Save;
+    }
+
     public AnimalGroup RegisterAnimal(AnimalDataSO animalData, int initialSize = 1)
     {
         if (!groups.TryGetValue(animalData.displayName, out AnimalGroup group))
@@ -58,6 +68,41 @@ public class AnimalManager : MonoBehaviour
         foreach (var group in groups.Values)
         {
             group.UpdateGroup(tickInterval, dayLength);
+        }
+    }
+
+    private void Save()
+    {
+        foreach (var data in GetGlobalSaveData())
+        {
+            SaveManager.Instance.saveData.AddData(data);
+        }
+    }
+
+    public List<AnimalManagerData> GetGlobalSaveData()
+    {
+        var list = new List<AnimalManagerData>();
+        foreach (var kvp in groups)
+        {
+            var data = new AnimalManagerData
+            {
+                ID = SaveData.GenerateID(),
+                SpeciesName = kvp.Key,
+                Hunger = kvp.Value.Hunger
+            };
+            list.Add(data);
+        }
+        return list;
+    }
+
+    public void LoadFromSave(List<AnimalManagerData> datas)
+    {
+        foreach (var data in datas)
+        {
+            if (groups.TryGetValue(data.SpeciesName, out var group))
+            {
+                group.Hunger = data.Hunger;
+            }
         }
     }
 }

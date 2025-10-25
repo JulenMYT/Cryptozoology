@@ -1639,7 +1639,7 @@ MonoBehaviour:
   - {fileID: 2779968721221944406}
   - {fileID: 7895906073040483384}
   - {fileID: 855504089869166697}
-  animalId: 6
+  animalId: Rabbit
 --- !u!1 &5416087862503774128
 GameObject:
   m_ObjectHideFlags: 0

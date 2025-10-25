@@ -118,7 +118,8 @@ public class AnimalSleep : MonoBehaviour, IAnimalBehaviour
 
     private void EnterSleep()
     {
-        EnterHouse?.Invoke();
+        if (house != null)
+            EnterHouse?.Invoke();
     }
 
     private void ExitSleep()

@@ -4,7 +4,7 @@ using System;
 public enum GameMode
 {
     Normal,
-    Placement
+    Building
 }
 
 public class GameModeManager : MonoBehaviour

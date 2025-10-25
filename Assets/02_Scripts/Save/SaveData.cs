@@ -6,7 +6,11 @@ using UnityEngine;
 [Serializable]
 public class SaveData
 {
+    public DayNightSaveData dayNightSaveData = new();
     public Dictionary<string, PlaceableObjectSaveData> placeableObjectDatas = new();
+    public Dictionary<string, AnimalSaveData> animalDatas = new();
+    public Dictionary<string, AnimalManagerData> animalGlobalDatas = new();
+    public EncyclopediaSaveData encyclopediaData = new();
 
     public static string GenerateID()
     {
@@ -21,9 +25,26 @@ public class SaveData
             placeableObjectDatas.Add(data.ID, data);
     }
 
+    public void AddData(AnimalSaveData data)
+    {
+        if (animalDatas.ContainsKey(data.ID))
+            animalDatas[data.ID] = data;
+        else
+            animalDatas.Add(data.ID, data);
+    }
+
+    public void AddData(AnimalManagerData data)
+    {
+        if (animalGlobalDatas.ContainsKey(data.SpeciesName))
+            animalGlobalDatas[data.SpeciesName] = data;
+        else
+            animalGlobalDatas.Add(data.SpeciesName, data);
+    }
+
     public void ClearData()
     {
         placeableObjectDatas.Clear();
+        animalDatas.Clear();
     }
 
     [OnDeserialized]

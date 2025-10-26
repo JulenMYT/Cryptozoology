@@ -42,8 +42,9 @@ public class PlaceableObject : MonoBehaviour
         SaveManager.Instance.OnSave -= Save;
     }
 
-    private void OnDestroy()
+    protected virtual void OnDestroy()
     {
-        GameManager.Instance.Garden.RemoveObject(ObjectData.displayName, gameObject);
+        if (Placed)
+            GameManager.Instance.Garden.RemoveObject(ObjectData.displayName, gameObject);
     }
 }

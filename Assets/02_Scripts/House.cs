@@ -73,7 +73,7 @@ public class House : PlaceableObject, IClickable
         }
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         foreach (var animal in animals)
         {
@@ -82,6 +82,9 @@ public class House : PlaceableObject, IClickable
                 animal.HouseDone();
             }
         }
+
+        if (Placed)
+            GameManager.Instance.Garden.RemoveObject(ObjectData.displayName, gameObject);
     }
 
     private void FillFood()

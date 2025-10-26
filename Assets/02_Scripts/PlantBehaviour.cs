@@ -109,4 +109,10 @@ public class PlantBehaviour : PlaceableObject, IEdible
         PlantSaveData.isMature = isMature;
         SaveManager.Instance.saveData.AddData(PlantSaveData);
     }
+
+    protected override void OnDestroy()
+    {
+        if (Placed)
+            GameManager.Instance.Garden.RemoveObject(ObjectData.displayName, gameObject);
+    }
 }

@@ -2,11 +2,20 @@ using UnityEngine;
 
 public enum ItemCategory
 {
-    Plant,
     Animal,
-    Production,
-    Building,
-    Resource
+    Plant,
+    Shovel,
+    House
+}
+
+public enum ItemSubCategory
+{
+    None,
+    AnimalExerior,
+    AnimalHouse,
+    PlantVegetable,
+    PlantFlower,
+    PlantTree
 }
 
 [CreateAssetMenu(menuName = "Game/Item")]
@@ -14,6 +23,7 @@ public class ObjectData : ScriptableObject
 {
     public string displayName;
     public ItemCategory category;
+    public ItemSubCategory subCategory;
     public Sprite icon;
     public GameObject prefab;
     public Vector2Int gridSize = Vector2Int.one;

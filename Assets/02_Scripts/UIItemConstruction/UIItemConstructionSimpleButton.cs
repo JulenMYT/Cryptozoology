@@ -6,10 +6,17 @@ public class UIItemConstructionSimpleButton : MonoBehaviour
 {
     [SerializeField] private Image iconImage;
     [SerializeField] private Button button;
+    [SerializeField] private Image selectedImage;
 
     private ObjectData itemData;
 
     public event Action<ObjectData> OnItemClicked;
+
+    private void Awake()
+    {
+        SetSelected(false);
+    }
+
     public void Initialize(ObjectData item)
     {
         itemData = item;
@@ -29,6 +36,19 @@ public class UIItemConstructionSimpleButton : MonoBehaviour
     private void OnButtonClicked()
     {
         OnItemClicked?.Invoke(itemData);
+    }
+
+    public void SetSelected(bool selected)
+    {
+        if (selectedImage != null)
+        {
+            selectedImage.enabled = selected;
+        }
+    }
+
+    public void ClickButton()
+    {
+        button.onClick.Invoke();
     }
 
     private void OnDestroy()

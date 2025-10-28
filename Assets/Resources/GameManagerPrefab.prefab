@@ -465,8 +465,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   grid: {fileID: 103201188455135975}
-  gridWidth: 40
-  gridHeight: 40
+  gridWidth: 10
+  gridHeight: 10
   gridLayer:
     serializedVersion: 2
     m_Bits: 64

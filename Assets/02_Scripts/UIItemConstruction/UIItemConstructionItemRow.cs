@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -7,13 +9,18 @@ public class UIItemConstructionItemRow : MonoBehaviour
     [SerializeField] private TMP_Text itemNameText;
     [SerializeField] private Transform buttonsParent;
     [SerializeField] private UIItemConstructionSimpleButton itemButtonPrefab;
-
     [SerializeField] private float movementAmount = 105f;
+    [SerializeField] private int buttonsPerPage = 6;
 
-    private Dictionary<string, UIItemConstructionSimpleButton> itemButtons = new();
-    private static int buttonCountPerRow = 6;
-    private int currentButtonCount = 0;
-    private int currentButtonIndex = 0;
+    private readonly List<UIItemConstructionSimpleButton> buttonOrder = new();
+    private readonly Dictionary<string, UIItemConstructionSimpleButton> itemButtons = new();
+
+    private int currentVisibleIndex = 0;
+    private int currentSelectedIndex = -1;
+
+    private UIItemConstructionSimpleButton currentSelected;
+    public bool IsActiveRow { get; private set; }
+
     public void Initialize(string itemName)
     {
         itemNameText.text = itemName;
@@ -21,63 +28,116 @@ public class UIItemConstructionItemRow : MonoBehaviour
 
     public UIItemConstructionSimpleButton AddButton(ObjectData data)
     {
-        UIItemConstructionSimpleButton newButton = Instantiate(itemButtonPrefab, buttonsParent);
+        if (itemButtons.ContainsKey(data.displayName))
+            return itemButtons[data.displayName];
+
+        var newButton = Instantiate(itemButtonPrefab, buttonsParent);
         newButton.Initialize(data);
-        itemButtons.Add(data.displayName, newButton);
-        currentButtonCount++;
+        newButton.OnItemClicked += OnButtonClicked;
+
+        itemButtons[data.displayName] = newButton;
+        buttonOrder.Add(newButton);
         return newButton;
+    }
+
+    private void OnButtonClicked(ObjectData data)
+    {
+        if (!IsActiveRow) return;
+        var button = itemButtons[data.displayName];
+        SelectButton(button);
     }
 
     public void Clear()
     {
-        foreach (var button in itemButtons.Values)
+        foreach (var button in buttonOrder)
         {
+            button.OnItemClicked -= OnButtonClicked;
             Destroy(button.gameObject);
         }
         itemButtons.Clear();
-        currentButtonCount = 0;
-        currentButtonIndex = 0;
+        buttonOrder.Clear();
+        currentVisibleIndex = 0;
+        currentSelectedIndex = -1;
+        currentSelected = null;
     }
 
-    public bool CanGoLeft()
+
+    public void ActivateRow(bool active)
     {
-        if (currentButtonCount <= buttonCountPerRow)
-        {
-            return false;
-        }
-
-        if (currentButtonIndex < 1)
-        {
-            return false;
-        }
-
-        return true;
+        IsActiveRow = active;
+        if (!active) DeselectButton();
+        else if (buttonOrder.Count > 0)
+            SelectButton(buttonOrder[0]);
     }
 
-    public bool CanGoRight()
+    public void SelectButton(UIItemConstructionSimpleButton button)
     {
-        if (currentButtonCount <= buttonCountPerRow)
-        {
-            return false;
-        }
+        if (currentSelected == button) return;
 
-        if (currentButtonIndex + buttonCountPerRow >= currentButtonCount)
-        {
-            return false;
-        }
+        if (currentSelected != null)
+            currentSelected.SetSelected(false);
 
-        return true;
+        currentSelected = button;
+        currentSelectedIndex = buttonOrder.IndexOf(button);
+
+        if (currentSelected != null)
+            currentSelected.SetSelected(true);
     }
 
-    public void GoLeft()
+    public void DeselectButton()
     {
-        currentButtonIndex--;
-        buttonsParent.localPosition += new Vector3(movementAmount, 0f, 0f);
+        if (currentSelected == null) return;
+        currentSelected.SetSelected(false);
+        currentSelected = null;
+        currentSelectedIndex = -1;
     }
 
-    public void GoRight()
+    public bool CanRowGoLeft() => currentVisibleIndex > 0;
+    public bool CanRowGoRight() => currentVisibleIndex + buttonsPerPage < buttonOrder.Count;
+
+    public void RowGoLeft()
     {
-        currentButtonIndex++;
-        buttonsParent.localPosition += new Vector3(-movementAmount, 0f, 0f);
+        if (!CanRowGoLeft()) return;
+        currentVisibleIndex--;
+        buttonsParent.DOLocalMoveX(buttonsParent.localPosition.x + movementAmount, 0.25f).SetEase(Ease.OutCubic);
+    }
+
+    public void RowGoRight()
+    {
+        if (!CanRowGoRight()) return;
+        currentVisibleIndex++;
+        buttonsParent.DOLocalMoveX(buttonsParent.localPosition.x - movementAmount, 0.25f).SetEase(Ease.OutCubic);
+    }
+
+    public void SelectLeft()
+    {
+        if (currentSelectedIndex <= 0) return;
+        int nextIndex = currentSelectedIndex - 1;
+        if (nextIndex < currentVisibleIndex)
+            RowGoLeft();
+        SelectButton(buttonOrder[nextIndex]);
+    }
+
+
+    public void SelectRight()
+    {
+        if (currentSelectedIndex < 0 || currentSelectedIndex >= buttonOrder.Count - 1) return;
+        int nextIndex = currentSelectedIndex + 1;
+        if (nextIndex >= (currentVisibleIndex + buttonsPerPage))
+            RowGoRight();
+        SelectButton(buttonOrder[nextIndex]);
+    }
+
+
+    public void ResetRowPlacement()
+    {
+        currentVisibleIndex = 0;
+        buttonsParent.localPosition = Vector3.zero;
+    }
+
+    public void ClickCurrentButton()
+    {
+        if (currentSelected != null)
+            currentSelected.ClickButton();
     }
 }

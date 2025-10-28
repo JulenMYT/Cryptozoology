@@ -91,12 +91,10 @@ public class House : PlaceableObject, IClickable
     {
         uiHouse.Hide();     
         foodAmount = capacity;
-        Debug.Log("Maison remplie de nourriture");
     }
 
     public bool HasFood()
     {
-        Debug.Log($"Vérification de la nourriture dans la maison: {foodAmount} unités restantes.");
         return foodAmount > 0;
     }
 

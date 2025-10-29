@@ -57,4 +57,8 @@ public class GameManager : MonoBehaviour
     [Header("Spawner")]
     [SerializeField] private AnimalSpawner animalSpawner;
     public AnimalSpawner AnimalSpawner => animalSpawner;
+
+    [Header("Money")]   
+    [SerializeField] private MoneyManager moneyManager;
+    public MoneyManager Money => moneyManager;
 }

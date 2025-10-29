@@ -11,6 +11,7 @@ public class SaveData
     public Dictionary<string, AnimalSaveData> animalDatas = new();
     public Dictionary<string, AnimalManagerData> animalGlobalDatas = new();
     public EncyclopediaSaveData encyclopediaData = new();
+    public MoneySaveData moneyData = new();
 
     public static string GenerateID()
     {

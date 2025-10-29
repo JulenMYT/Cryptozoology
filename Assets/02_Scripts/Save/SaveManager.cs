@@ -51,6 +51,8 @@ public class SaveManager : MonoBehaviour
     private void LoadGame()
     {
         GameManager.Instance.DayNight.Load(saveData.dayNightSaveData);
+        GameManager.Instance.Encyclopedia.Load(saveData.encyclopediaData);
+        GameManager.Instance.Money.Load(saveData.moneyData);
         LoadPlaceableObjects();
         LoadAnimals();
     }

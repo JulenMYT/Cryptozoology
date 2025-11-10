@@ -61,4 +61,8 @@ public class GameManager : MonoBehaviour
     [Header("Money")]   
     [SerializeField] private MoneyManager moneyManager;
     public MoneyManager Money => moneyManager;
+
+    [Header("Pause")]
+    [SerializeField] private PauseManager pauseManager;
+    public PauseManager Pause => pauseManager;
 }

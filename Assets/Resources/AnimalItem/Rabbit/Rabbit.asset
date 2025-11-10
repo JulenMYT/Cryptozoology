@@ -20,6 +20,7 @@ MonoBehaviour:
   gridSize: {x: 0, y: 0}
   isUnique: 0
   isGridItem: 0
+  cost: 700
   conditions: {fileID: 11400000, guid: e0cb47c758fc481468fddf1b1bb2e790, type: 2}
   encyclopediaPrefab: {fileID: 5217614176957478505, guid: ebe8f4a3f4e064e47a892e439fd25b9b, type: 3}
   houseID: RabbitHouse

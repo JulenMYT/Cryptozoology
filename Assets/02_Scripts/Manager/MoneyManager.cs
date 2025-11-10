@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class MoneyManager : MonoBehaviour
@@ -6,6 +7,7 @@ public class MoneyManager : MonoBehaviour
     private int startingMoney = 1000;
 
     public int Money { get; private set; }
+    public event Action<int> OnMoneyChanged;
 
     private void Awake()
     {
@@ -20,6 +22,7 @@ public class MoneyManager : MonoBehaviour
     public void AddMoney(int amount)
     {
         Money += amount;
+        OnMoneyChanged?.Invoke(Money);
     }
 
     public bool SpendMoney(int amount)
@@ -27,6 +30,7 @@ public class MoneyManager : MonoBehaviour
         if (amount > Money)
             return false;
         Money -= amount;
+        OnMoneyChanged?.Invoke(Money);
         return true;
     }
 
@@ -36,6 +40,7 @@ public class MoneyManager : MonoBehaviour
         {
             currentMoney = Money
         };
+        SaveManager.Instance.saveData.moneyData = data;
     }
 
     public void Load(MoneySaveData data)

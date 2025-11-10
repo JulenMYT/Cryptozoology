@@ -7,10 +7,13 @@ using UnityEngine.UI;
 public class UIItemConstruction : MonoBehaviour
 {
     private enum MenuState { Closed, Open, Building }
-    private MenuState state;
+    private MenuState menuState;
 
     [Header("Menu Tween")]
     [SerializeField] private UIMenuSlideVertical menuTween;
+
+    [Header("General")]
+    [SerializeField] private Button toggleButton;
 
     [Header("Category Buttons")]
     [SerializeField] private RectTransform layoutGroupParent;
@@ -35,13 +38,15 @@ public class UIItemConstruction : MonoBehaviour
     private readonly Dictionary<ItemSubCategory, UIItemConstructionItemRow> itemRowDict = new();
     private readonly List<UIItemConstructionItemRow> itemRows = new();
     private UIItemConstructionItemRow currentItemRow;
-    private int currentRowIndex = 0;
+    private int currentRowIndex;
 
     [Header("Input Handling")]
     [SerializeField] private Button leftButton;
     [SerializeField] private Button rightButton;
     [SerializeField] private Button upButton;
     [SerializeField] private Button downButton;
+
+    private float cursorSpeed = 500f;
 
     private static readonly Dictionary<ItemSubCategory, string> subcategoryNames = new()
     {
@@ -53,7 +58,16 @@ public class UIItemConstruction : MonoBehaviour
         { ItemSubCategory.None, "Divers"}
     };
 
-    private float cursorSpeed = 500f;
+    private Action onAButton;
+    private Action onBButton;
+    private Action onYButton;
+    private Action onLeftBumper;
+    private Action onRightBumper;
+    private Action<Vector2> onDirectional;
+    private Action<Vector2> onDirectionalHeld;
+
+    private Action onLeftClick;
+    private Action onRightClick;
 
     private void Awake()
     {
@@ -65,134 +79,130 @@ public class UIItemConstruction : MonoBehaviour
 
         leftButton?.onClick.AddListener(() => { currentItemRow.RowGoLeft(); UpdateNavigationButtons(); });
         rightButton?.onClick.AddListener(() => { currentItemRow.RowGoRight(); UpdateNavigationButtons(); });
-        upButton?.onClick.AddListener(() => { GoUp(); UpdateNavigationButtons(); });
-        downButton?.onClick.AddListener(() => { GoDown(); UpdateNavigationButtons(); });
+        upButton?.onClick.AddListener(() => { GoVertical(-1); UpdateNavigationButtons(); });
+        downButton?.onClick.AddListener(() => { GoVertical(1); UpdateNavigationButtons(); });
+
+        toggleButton?.onClick.AddListener(ToggleMenu);
     }
 
     private void Start()
     {
-        SubscribeInputs();
+        var input = GameManager.Instance.Input;
+        input.OnAButton += () => onAButton?.Invoke();
+        input.OnBButton += () => onBButton?.Invoke();
+        input.OnYButton += () => onYButton?.Invoke();
+        input.OnLeftBumper += () => onLeftBumper?.Invoke();
+        input.OnRightBumper += () => onRightBumper?.Invoke();
+        input.OnUpButton += () => onDirectional?.Invoke(Vector2.up);
+        input.OnDownButton += () => onDirectional?.Invoke(Vector2.down);
+        input.OnLeftButton += () => onDirectional?.Invoke(Vector2.left);
+        input.OnRightButton += () => onDirectional?.Invoke(Vector2.right);
+        input.OnUpButtonHeld += () => onDirectionalHeld?.Invoke(Vector2.up);
+        input.OnDownButtonHeld += () => onDirectionalHeld?.Invoke(Vector2.down);
+        input.OnLeftButtonHeld += () => onDirectionalHeld?.Invoke(Vector2.left);
+        input.OnRightButtonHeld += () => onDirectionalHeld?.Invoke(Vector2.right);
+        input.OnLeftClick += () => onLeftClick?.Invoke();
+        input.OnRightClick += () => onRightClick?.Invoke();
+
+        SwitchMode(MenuState.Closed);
     }
 
-    private void SubscribeInputs()
+    private void SwitchMode(MenuState state)
     {
-        var gm = GameManager.Instance;
-        gm.BuildingSystem.OnCanceled += HandleCancel;
+        menuState = state;
+        onAButton = onBButton = onYButton = onLeftBumper = onRightBumper = null;
+        onDirectional = onDirectionalHeld = null;
+        onLeftClick = onRightClick = null;
 
-        gm.Input.OnLeftBumper += HandleLeftBumper;
-        gm.Input.OnRightBumper += HandleRightBumper;
-        gm.Input.OnAButton += HandleAButton;
-        gm.Input.OnBButton += HandleBButton;
-
-        gm.Input.OnUpButton += () => HandleDirectional(Vector2.up);
-        gm.Input.OnDownButton += () => HandleDirectional(Vector2.down);
-        gm.Input.OnLeftButton += () => HandleDirectional(Vector2.left);
-        gm.Input.OnRightButton += () => HandleDirectional(Vector2.right);
-
-        gm.Input.OnUpButtonHeld += () => HandleDirectional(Vector2.up, true);
-        gm.Input.OnDownButtonHeld += () => HandleDirectional(Vector2.down, true);
-        gm.Input.OnLeftButtonHeld += () => HandleDirectional(Vector2.left, true);
-        gm.Input.OnRightButtonHeld += () => HandleDirectional(Vector2.right, true);
-
-        gm.Input.OnLeftClick += HandleLeftClick;
-        gm.Input.OnRightClick += HandleRightClick;
-    }
-
-    private void HandleDirectional(Vector2 dir, bool held = false)
-    {
-        var gm = GameManager.Instance;
-        if (gm.BuildingSystem.CurrentMode == BuildingMode.Placement)
+        switch (menuState)
         {
-            float speed = cursorSpeed * (held ? 1.5f : 1f);
-            CursorMover.MoveCursor(dir * speed * Time.deltaTime);
+            case MenuState.Closed: onYButton = OpenMenu; break;
+            case MenuState.Open:
+                onAButton = ClickCurrentButton;
+                onYButton = CloseMenu;
+                onLeftBumper = PreviousCategory;
+                onRightBumper = NextCategory;
+                onDirectional = NavigateMenu;
+                break;
+            case MenuState.Building:
+                onAButton = onLeftClick = TryPlace;
+                onBButton = onRightClick = CancelPlacement;
+                onYButton = CloseMenu;
+                onDirectional = MoveCursor;
+                break;
         }
-        else if (state == MenuState.Open)
+    }
+
+    private void ToggleMenu()
+    {
+        if (menuState == MenuState.Closed) OpenMenu();
+        else
         {
-            if (dir == Vector2.up) GoUp();
-            else if (dir == Vector2.down) GoDown();
-            else if (dir == Vector2.left) currentItemRow.SelectLeft();
-            else if (dir == Vector2.right) currentItemRow.SelectRight();
-
-            UpdateNavigationButtons();
+            if (menuState == MenuState.Building) CancelPlacement();
+            CloseMenu();
+            ResetCategoryVisual(currentButton);
         }
     }
 
-    private void HandleRightBumper()
+    public void OpenMenu()
     {
-        if (state == MenuState.Building) return;
-        if (state == MenuState.Closed) { OnCategoryButtonClicked(categoryButtons[0]); return; }
-        int next = (currentButtonIndex + 1) % categoryButtons.Count;
-        OnCategoryButtonClicked(categoryButtons[next]);
+        if (menuState == MenuState.Open) return;
+        SwitchMode(MenuState.Open);
+        menuTween.OpenMenu();
+        OnCategoryButtonClicked(categoryButtons[0]);
+        GameManager.Instance.Pause.Pause();
     }
 
-    private void HandleLeftBumper()
+    public void CloseMenu()
     {
-        if (state == MenuState.Building) return;
-        if (state == MenuState.Closed) { OnCategoryButtonClicked(categoryButtons[0]); return; }
-        int prev = (currentButtonIndex - 1 + categoryButtons.Count) % categoryButtons.Count;
-        OnCategoryButtonClicked(categoryButtons[prev]);
+        if (menuState == MenuState.Closed) return;
+        if (menuState == MenuState.Building) CancelPlacement();
+        SwitchMode(MenuState.Closed);
+        menuTween.CloseMenu();
+        ClearMenu();
+        ResetCategoryVisual(currentButton);
+        currentButton = null;
+        GameManager.Instance.Pause.Resume();
     }
 
-    private void HandleAButton()
-    {
-        if (state == MenuState.Open)
-            currentItemRow?.ClickCurrentButton();
-        else if (state == MenuState.Building)
-            GameManager.Instance.BuildingSystem.TryPlaceAtCursor();
-    }
-
-    private void HandleBButton()
-    {
-        if (state == MenuState.Open) { CloseMenu(); ResetCategoryVisual(); }
-        else if (state == MenuState.Building) GameManager.Instance.BuildingSystem.CancelPlacement();
-    }
-
-    private void HandleLeftClick()
-    {
-        if (state == MenuState.Building) GameManager.Instance.BuildingSystem.TryPlaceAtCursor();
-    }
-
-    private void HandleRightClick()
-    {
-        if (state == MenuState.Building) GameManager.Instance.BuildingSystem.CancelPlacement();
-    }
-
-    private void HandleCancel()
-    {
-        if (state == MenuState.Building) state = MenuState.Open;
-    }
-
-    // --- Menu Methods ---
     private void OnCategoryButtonClicked(ButtonCategory category)
     {
-        if (currentButton == category.button) { CloseMenu(); ResetCategoryVisual(); return; }
+        if (currentButton == category.button)
+        {
+            return;
+        }
 
-        ResetCategoryVisual();
+        ResetCategoryVisual(currentButton);
         currentButton = category.button;
         currentButtonIndex = category.index;
-
         currentButton.transform.DOScale(Vector3.one * scaleFactor, 0.25f)
             .SetEase(Ease.OutBack)
+            .SetUpdate(true)
             .OnComplete(() => LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroupParent));
-
         DisplayCategory(category.category);
-        OpenMenu();
     }
 
-    private void ResetCategoryVisual()
+    private void ResetCategoryVisual(Button button)
     {
-        if (currentButton == null) return;
-        currentButton.transform.DOScale(Vector3.one, 0.2f)
+        if (button == null) return;
+        button.transform.DOScale(Vector3.one, 0.2f)
             .SetEase(Ease.InOutBack)
-            .OnComplete(() => LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroupParent));
-        currentButton = null;
+            .SetUpdate(true)
+            .OnUpdate(() => LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroupParent));
+    }
+
+    private void PreviousCategory() => ChangeCategory(-1);
+    private void NextCategory() => ChangeCategory(1);
+    private void ChangeCategory(int offset)
+    {
+        int index = (currentButtonIndex + offset + categoryButtons.Count) % categoryButtons.Count;
+        OnCategoryButtonClicked(categoryButtons[index]);
     }
 
     private void DisplayCategory(ItemCategory category)
     {
-        Clear();
+        ClearMenu();
         var items = ItemDatabaseRuntime.GetByCategory(category);
-
         foreach (var item in items)
         {
             if (!itemRowDict.TryGetValue(item.subCategory, out var row))
@@ -205,26 +215,16 @@ public class UIItemConstruction : MonoBehaviour
             var button = row.AddButton(item);
             button.OnItemClicked += HandleItemSelected;
         }
-
         if (itemRows.Count > 0)
         {
             currentRowIndex = 0;
             currentItemRow = itemRows[0];
             currentItemRow.ActivateRow(true);
         }
-
         UpdateNavigationButtons();
     }
 
-    private void HandleItemSelected(ObjectData item)
-    {
-        if (item.isUnique && GameManager.Instance.Garden.GetCount(item.displayName) >= 1) return;
-
-        state = MenuState.Building;
-        GameManager.Instance.BuildingSystem.SetPlacementMode(item);
-    }
-
-    private void Clear()
+    private void ClearMenu()
     {
         foreach (var row in itemRows) Destroy(row.gameObject);
         itemRowDict.Clear();
@@ -233,20 +233,51 @@ public class UIItemConstruction : MonoBehaviour
         currentRowIndex = 0;
     }
 
-    private bool CanGoUp() => currentRowIndex > 0;
-    private bool CanGoDown() => currentRowIndex < itemRows.Count - 1;
+    private void HandleItemSelected(ObjectData item)
+    {
+        if (item.isUnique && GameManager.Instance.Garden.GetCount(item.displayName) >= 1) return;
+        SwitchMode(MenuState.Building);
+        GameManager.Instance.BuildingSystem.SetPlacementMode(item);
+    }
 
-    private void GoUp() { if (!CanGoUp()) return; currentItemRow.DeselectButton(); currentItemRow.ActivateRow(false); currentRowIndex--; currentItemRow = itemRows[currentRowIndex]; currentItemRow.ActivateRow(true); itemRowParent.DOAnchorPos(itemRowParent.anchoredPosition - new Vector2(0, rowMovementAmount), 0.25f).SetEase(Ease.OutQuad); }
-    private void GoDown() { if (!CanGoDown()) return; currentItemRow.DeselectButton(); currentItemRow.ActivateRow(false); currentRowIndex++; currentItemRow = itemRows[currentRowIndex]; currentItemRow.ActivateRow(true); itemRowParent.DOAnchorPos(itemRowParent.anchoredPosition + new Vector2(0, rowMovementAmount), 0.25f).SetEase(Ease.OutQuad); }
+    private void NavigateMenu(Vector2 dir)
+    {
+        if (currentItemRow == null) return;
+        if (dir == Vector2.up) GoVertical(-1);
+        else if (dir == Vector2.down) GoVertical(1);
+        else if (dir == Vector2.left) currentItemRow.SelectLeft();
+        else if (dir == Vector2.right) currentItemRow.SelectRight();
+        UpdateNavigationButtons();
+    }
+
+    private void GoVertical(int direction)
+    {
+        int targetIndex = currentRowIndex + direction;
+        if (targetIndex < 0 || targetIndex >= itemRows.Count) return;
+        currentItemRow.DeselectButton();
+        currentItemRow.ActivateRow(false);
+        currentRowIndex = targetIndex;
+        currentItemRow = itemRows[currentRowIndex];
+        currentItemRow.ActivateRow(true);
+        itemRowParent.DOAnchorPos(itemRowParent.anchoredPosition + new Vector2(0, direction * rowMovementAmount), 0.25f).SetEase(Ease.OutQuad).SetUpdate(true);
+    }
+
     private void UpdateNavigationButtons()
     {
         if (currentItemRow == null) return;
         leftButton.interactable = currentItemRow.CanRowGoLeft();
         rightButton.interactable = currentItemRow.CanRowGoRight();
-        upButton.gameObject.SetActive(CanGoUp());
-        downButton.gameObject.SetActive(CanGoDown());
+        upButton.gameObject.SetActive(currentRowIndex > 0);
+        downButton.gameObject.SetActive(currentRowIndex < itemRows.Count - 1);
     }
 
-    public void OpenMenu() { if (state == MenuState.Open) return; state = MenuState.Open; menuTween.OpenMenu(); }
-    public void CloseMenu() { if (state == MenuState.Closed) return; state = MenuState.Closed; menuTween.CloseMenu(); Clear(); }
+    private void MoveCursor(Vector2 dir)
+    {
+        if (dir == Vector2.zero) return;
+        CursorMover.MoveCursor(dir * cursorSpeed * Time.unscaledDeltaTime);
+    }
+
+    private void TryPlace() => GameManager.Instance.BuildingSystem.TryPlaceAtCursor();
+    private void CancelPlacement() => GameManager.Instance.BuildingSystem.CancelPlacement();
+    private void ClickCurrentButton() => currentItemRow?.ClickCurrentButton();
 }

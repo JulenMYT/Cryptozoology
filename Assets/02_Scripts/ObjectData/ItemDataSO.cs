@@ -29,4 +29,5 @@ public class ObjectData : ScriptableObject
     public Vector2Int gridSize = Vector2Int.one;
     public bool isUnique = false;
     public bool isGridItem = false;
+    public int cost = 0;
 }

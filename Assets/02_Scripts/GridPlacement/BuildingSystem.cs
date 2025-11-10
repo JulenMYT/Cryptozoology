@@ -120,12 +120,14 @@ public class BuildingSystem : MonoBehaviour
     {
         if (!selectedItem || !TryGetValidCell(out Vector3Int cell)) return;
 
+        if (selectedItem.cost > GameManager.Instance.Money.Money) return;
         if (!IsInsideGrid(cell, selectedItem.gridSize)) return;
         if (!CanPlaceObject(cell, selectedItem.gridSize)) return;
 
         Vector3 spawnPos = grid.GetCellCenterWorld(cell);
         GameObject obj = PlaceItem(selectedItem, spawnPos);
         if (!obj) return;
+        GameManager.Instance.Money.SpendMoney(selectedItem.cost);
 
         if (obj.TryGetComponent<PlaceableObject>(out var placeable))
         {

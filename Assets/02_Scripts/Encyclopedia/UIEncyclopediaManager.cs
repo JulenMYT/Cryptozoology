@@ -11,7 +11,8 @@ public class UIEncyclopediaManager : MonoBehaviour
     [SerializeField] private Transform gridParent;
     [SerializeField] private UIEncyclopediaAnimalButton animalIconPrefab;
     [SerializeField] private Sprite unknownSprite;
-    [SerializeField] private Button toggleGridButton;
+    [SerializeField] private Button openButton;
+    [SerializeField] private Button closeButton;
 
     [SerializeField] private Transform leftPage;
     [SerializeField] private Transform rightPage;
@@ -25,8 +26,8 @@ public class UIEncyclopediaManager : MonoBehaviour
 
     private void Awake()
     {
-        toggleGridButton.onClick.RemoveAllListeners();
-        toggleGridButton.onClick.AddListener(OpenGrid);
+        openButton.onClick.AddListener(OpenGrid);
+        closeButton.onClick.AddListener(CloseAll);
 
         backButton.onClick.RemoveAllListeners();
         backButton.onClick.AddListener(BackToGrid);
@@ -46,27 +47,18 @@ public class UIEncyclopediaManager : MonoBehaviour
         SetCanvasVisible(gridCanvas, true);
         SetCanvasVisible(encyclopediaCanvas, false);
         RefreshGrid();
-
-        toggleGridButton.onClick.RemoveAllListeners();
-        toggleGridButton.onClick.AddListener(CloseAll);
     }
 
     private void CloseAll()
     {
         SetCanvasVisible(gridCanvas, false);
         SetCanvasVisible(encyclopediaCanvas, false);
-
-        toggleGridButton.onClick.RemoveAllListeners();
-        toggleGridButton.onClick.AddListener(OpenGrid);
     }
 
     private void BackToGrid()
     {
         SetCanvasVisible(encyclopediaCanvas, false);
         SetCanvasVisible(gridCanvas, true);
-
-        toggleGridButton.onClick.RemoveAllListeners();
-        toggleGridButton.onClick.AddListener(CloseAll);
     }
 
     private void SetCanvasVisible(CanvasGroup canvas, bool visible)

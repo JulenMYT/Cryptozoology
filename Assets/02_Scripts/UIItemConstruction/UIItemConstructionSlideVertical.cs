@@ -26,7 +26,8 @@ public class UIMenuSlideVertical : MonoBehaviour
         isOpen = true;
 
         menuTransform.DOAnchorPos(shownPos, duration)
-            .SetEase(easeOut);
+            .SetEase(easeOut)
+            .SetUpdate(true);
     }
 
     public void CloseMenu()
@@ -35,6 +36,7 @@ public class UIMenuSlideVertical : MonoBehaviour
         isOpen = false;
 
         menuTransform.DOAnchorPos(hiddenPos, duration)
-            .SetEase(easeIn);
+            .SetEase(easeIn)
+            .SetUpdate(true);
     }
 }

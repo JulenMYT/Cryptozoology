@@ -18,7 +18,7 @@ public class BuildingSystem : MonoBehaviour
     [SerializeField] private LayerMask gridLayer;
 
     [Header("Placement Objects")]
-    [SerializeField] private PlacementCursor cursor;
+    [SerializeField] private UICursor cursor;
     private Transform objectsParent;
 
     private ObjectData selectedItem;

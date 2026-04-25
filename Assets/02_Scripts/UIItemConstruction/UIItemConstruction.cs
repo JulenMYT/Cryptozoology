@@ -128,7 +128,7 @@ public class UIItemConstruction : MonoBehaviour
                 onAButton = onLeftClick = TryPlace;
                 onBButton = onRightClick = CancelPlacement;
                 onYButton = CloseMenu;
-                onDirectional = MoveCursor;
+                onDirectionalHeld = MoveCursor;
                 break;
         }
     }
@@ -274,10 +274,14 @@ public class UIItemConstruction : MonoBehaviour
     private void MoveCursor(Vector2 dir)
     {
         if (dir == Vector2.zero) return;
-        CursorMover.MoveCursor(dir * cursorSpeed * Time.unscaledDeltaTime);
+        UICursorMover.MoveCursor(dir * cursorSpeed * Time.unscaledDeltaTime);
     }
 
     private void TryPlace() => GameManager.Instance.BuildingSystem.TryPlaceAtCursor();
-    private void CancelPlacement() => GameManager.Instance.BuildingSystem.CancelPlacement();
+    private void CancelPlacement()
+    { 
+        GameManager.Instance.BuildingSystem.CancelPlacement();
+        SwitchMode(MenuState.Open);
+    }
     private void ClickCurrentButton() => currentItemRow?.ClickCurrentButton();
 }
